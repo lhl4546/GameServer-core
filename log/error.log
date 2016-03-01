@@ -1,0 +1,409 @@
+11:08:19.008 [main] MainDemo Server start failed
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'daoExample': Invocation of init method failed; nested exception is java.lang.NullPointerException
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:136) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:408) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1566) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:539) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:476) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:303) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:299) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:194) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:755) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:757) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:480) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.annotation.AnnotationConfigApplicationContext.<init>(AnnotationConfigApplicationContext.java:84) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.start(MainDemo.java:28) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+Caused by: java.lang.NullPointerException: null
+	at core.fire.database.BaseDao.getTable(BaseDao.java:234) ~[classes/:na]
+	at core.fire.database.BaseDao.getInsertUpdateSQL0(BaseDao.java:93) ~[classes/:na]
+	at core.fire.database.BaseDao.getInsertUpdateSQL(BaseDao.java:82) ~[classes/:na]
+	at core.fire.database.BaseDao.initialize(BaseDao.java:70) ~[classes/:na]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.8.0_40]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:1.8.0_40]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:1.8.0_40]
+	at java.lang.reflect.Method.invoke(Method.java:497) ~[na:1.8.0_40]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleElement.invoke(InitDestroyAnnotationBeanPostProcessor.java:349) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods(InitDestroyAnnotationBeanPostProcessor.java:300) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:133) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	... 14 common frames omitted
+11:09:21.452 [main] MainDemo Server start failed
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'daoExample': Invocation of init method failed; nested exception is java.lang.NullPointerException
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:136) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:408) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1566) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:539) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:476) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:303) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:299) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:194) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:755) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:757) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:480) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.annotation.AnnotationConfigApplicationContext.<init>(AnnotationConfigApplicationContext.java:84) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.start(MainDemo.java:28) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+Caused by: java.lang.NullPointerException: null
+	at core.fire.database.BaseDao.getTable(BaseDao.java:234) ~[classes/:na]
+	at core.fire.database.BaseDao.getInsertUpdateSQL0(BaseDao.java:93) ~[classes/:na]
+	at core.fire.database.BaseDao.getInsertUpdateSQL(BaseDao.java:82) ~[classes/:na]
+	at core.fire.database.BaseDao.initialize(BaseDao.java:70) ~[classes/:na]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.8.0_40]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:1.8.0_40]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:1.8.0_40]
+	at java.lang.reflect.Method.invoke(Method.java:497) ~[na:1.8.0_40]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleElement.invoke(InitDestroyAnnotationBeanPostProcessor.java:349) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods(InitDestroyAnnotationBeanPostProcessor.java:300) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:133) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	... 14 common frames omitted
+11:10:09.711 [main] MainDemo Server start failed
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'daoExample': Invocation of init method failed; nested exception is java.lang.NullPointerException
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:136) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:408) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1566) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:539) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:476) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:303) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:230) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:299) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:194) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:755) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:757) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:480) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.annotation.AnnotationConfigApplicationContext.<init>(AnnotationConfigApplicationContext.java:84) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.start(MainDemo.java:28) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+Caused by: java.lang.NullPointerException: null
+	at core.fire.database.BaseDao.getTable(BaseDao.java:234) ~[classes/:na]
+	at core.fire.database.BaseDao.getInsertUpdateSQL0(BaseDao.java:93) ~[classes/:na]
+	at core.fire.database.BaseDao.getInsertUpdateSQL(BaseDao.java:82) ~[classes/:na]
+	at core.fire.database.BaseDao.initialize(BaseDao.java:70) ~[classes/:na]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.8.0_40]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[na:1.8.0_40]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:1.8.0_40]
+	at java.lang.reflect.Method.invoke(Method.java:497) ~[na:1.8.0_40]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleElement.invoke(InitDestroyAnnotationBeanPostProcessor.java:349) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods(InitDestroyAnnotationBeanPostProcessor.java:300) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:133) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	... 14 common frames omitted
+11:12:13.937 [main] MainDemo Server start failed
+org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type [core.fire.Timer] is defined
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBean(DefaultListableBeanFactory.java:371) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBean(DefaultListableBeanFactory.java:331) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:968) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.start(MainDemo.java:30) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:12:13.937 [Thread-1] MainDemo Server stop failed
+org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type [core.fire.net.netty.NettyServer] is defined
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBean(DefaultListableBeanFactory.java:371) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBean(DefaultListableBeanFactory.java:331) ~[spring-beans-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:968) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:47) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:40) [classes/:na]
+	at core.fire.MainDemo$$Lambda$1/2049051802.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:13:09.679 [main] MainDemo Server start failed
+java.lang.NullPointerException: null
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:62) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:14:00.960 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:14:41.766 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:14:54.398 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:14:57.641 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:48) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:41) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:16:00.772 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:16:04.013 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:48) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:41) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:16:40.266 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:16:58.492 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:17:00.749 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:48) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:41) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:17:34.902 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:18:04.296 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:48) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:41) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:18:17.252 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:18:46.004 [main] MainDemo Server start failed
+java.lang.ClassNotFoundException: /core/fire/AppConfigExample
+	at java.lang.Class.forName0(Native Method) ~[na:1.8.0_40]
+	at java.lang.Class.forName(Class.java:264) ~[na:1.8.0_40]
+	at core.fire.util.ClassUtil.getClasses(ClassUtil.java:51) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor0(RPCServer.java:75) ~[classes/:na]
+	at core.fire.rpc.RPCServer.loadProcessor(RPCServer.java:64) ~[classes/:na]
+	at core.fire.rpc.RPCServer.start(RPCServer.java:50) ~[classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:32) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+11:36:53.717 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:49) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:38:51.417 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:49) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:39:20.797 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:49) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:41:16.467 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:49) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:43:14.694 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:49) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:44:34.749 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:49) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:46:21.719 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:49) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:47:30.792 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:48:02.577 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:55:26.093 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+11:59:05.342 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:00:21.957 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:00:29.784 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:00:52.333 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:03:58.229 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:06:53.056 [Thread-1] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:07:37.760 [SHUTDOWN_HOOK] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:50) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:42) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:14:31.240 [main] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:51) [classes/:na]
+	at core.fire.MainDemo.start(MainDemo.java:35) [classes/:na]
+	at core.fire.MainDemo.main(MainDemo.java:22) [classes/:na]
+12:14:52.654 [SHUTDOWN_HOOK] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:51) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:43) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:36:50.294 [SHUTDOWN_HOOK] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:51) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:43) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+12:37:03.077 [SHUTDOWN_HOOK] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:51) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:43) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
+13:30:48.274 [SHUTDOWN_HOOK] MainDemo Server stop failed
+java.lang.IllegalStateException: org.springframework.context.annotation.AnnotationConfigApplicationContext@309e345f has been closed already
+	at org.springframework.context.support.AbstractApplicationContext.assertBeanFactoryActive(AbstractApplicationContext.java:940) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:967) ~[spring-context-4.1.6.RELEASE.jar:4.1.6.RELEASE]
+	at core.fire.MainDemo.stop(MainDemo.java:51) [classes/:na]
+	at core.fire.MainDemo.lambda$0(MainDemo.java:43) [classes/:na]
+	at core.fire.MainDemo$$Lambda$2/1636291061.run(Unknown Source) [classes/:na]
+	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_40]
