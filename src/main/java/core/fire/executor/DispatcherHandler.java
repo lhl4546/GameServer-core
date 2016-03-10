@@ -166,6 +166,7 @@ public final class DispatcherHandler implements Handler, Component
         }
     }
 
+    // 每个生成的PB协议类都应该有一个getDefaultInstance静态方法
     private GeneratedMessage instantiate(Class<? extends GeneratedMessage> type) throws NoSuchMethodException,
             SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         Method method = type.getMethod("getDefaultInstance");

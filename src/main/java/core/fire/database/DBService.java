@@ -43,6 +43,7 @@ public class DBService implements Component
     @Override
     public void stop() throws Exception {
         worker.stop = true;
+        worker.thread.interrupt();
         worker.thread.join();
         LOG.debug("DBService stop");
     }

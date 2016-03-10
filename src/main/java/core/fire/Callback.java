@@ -25,4 +25,17 @@ public interface Callback
      * @param t 异步操作异常
      */
     void onError(Throwable t);
+
+    /**
+     * 什么也不做的空回调
+     */
+    Callback EMPTY = new Callback() {
+        @Override
+        public void onSuccess(Object param) {
+        }
+
+        @Override
+        public void onError(Throwable t) {
+        }
+    };
 }

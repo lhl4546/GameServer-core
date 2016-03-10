@@ -31,7 +31,6 @@ public class AppStart implements Component
             app.getBean(DBService.class).start();
             app.getBean(DispatcherHandler.class).start();
             app.getBean(NettyServer.class).start();
-            stop();
         } catch (Exception e) {
             LOG.error("Server start failed", e);
             stop();
