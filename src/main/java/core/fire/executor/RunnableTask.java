@@ -10,7 +10,7 @@ import core.fire.net.NetSession;
 import core.fire.net.netty.Packet;
 
 /**
- * 可执行任务
+ * 可执行任务，配合消息队列{@link Sequence}使用可以达到消息队列自动执行的目的
  * 
  * @author lhl
  *
@@ -21,7 +21,7 @@ public class RunnableTask implements Runnable
     private Handler handler; // 消息处理器
     private NetSession session; // 消息队列
     private Packet packet; // 消息包
-    private SequenceObject sequence; // 消息队列
+    private Sequence sequence; // 消息队列
 
     /**
      * @param handler 处理器
@@ -29,7 +29,7 @@ public class RunnableTask implements Runnable
      * @param packet 消息包
      * @param sequence 任务队列
      */
-    public RunnableTask(Handler handler, NetSession session, Packet packet, SequenceObject sequence) {
+    public RunnableTask(Handler handler, NetSession session, Packet packet, Sequence sequence) {
         this.handler = handler;
         this.session = session;
         this.packet = packet;

@@ -76,8 +76,8 @@ public final class DispatcherHandler implements Handler, Component
     private void submitTask(NetSession session, Handler handler, Packet packet) {
         Object attachObj = session.getAttachment(SEQUENCE_KEY);
 
-        if (attachObj != null || (attachObj instanceof SequenceObject)) {
-            SequenceObject sequence = (SequenceObject) attachObj;
+        if (attachObj != null || (attachObj instanceof Sequence)) {
+            Sequence sequence = (Sequence) attachObj;
             sequence.enqueue(new RunnableTask(handler, session, packet, sequence));
         } else {
             executor.submit(() -> handler.handle(session, packet));
@@ -125,8 +125,8 @@ public final class DispatcherHandler implements Handler, Component
      * 
      * @return
      */
-    public SequenceObject newSequence() {
-        return new SequenceObject(executor);
+    public Sequence newSequence() {
+        return new Sequence(executor);
     }
 
     @Override

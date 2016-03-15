@@ -9,13 +9,13 @@ import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 
 /**
- * 消息队列
+ * 消息队列，保证同时只会有一条队列中的消息正在执行
  * 
  * @author lhl
  *
  *         2016年1月30日 下午12:48:21
  */
-public final class SequenceObject
+public final class Sequence
 {
     private Queue<Runnable> queue;
     private ExecutorService executor;
@@ -24,13 +24,13 @@ public final class SequenceObject
      * @param executor 消息执行器
      * @throws NullPointerException 参数{@code executor}为null
      */
-    public SequenceObject(ExecutorService executor) throws NullPointerException {
+    public Sequence(ExecutorService executor) throws NullPointerException {
         this.executor = Objects.requireNonNull(executor);
         this.queue = new LinkedList<>();
     }
 
     public final void enqueue(Runnable r) {
-        synchronized (this.queue) {
+        synchronized (queue) {
             queue.offer(r);
             if (queue.size() == 1) {
                 executor.submit(r);
@@ -39,7 +39,7 @@ public final class SequenceObject
     }
 
     public final void dequeue() {
-        synchronized (this.queue) {
+        synchronized (queue) {
             queue.poll();
             if (!queue.isEmpty()) {
                 executor.submit(queue.peek());
