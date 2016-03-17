@@ -3,12 +3,7 @@
  */
 package core.fire.database;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -44,13 +39,13 @@ public class BaseDao<T>
     private static final String SQL_SELECT_BY_SECOND_KEY = "SELECT * FROM $table WHERE $secondkey=?";
     private static final BeanProcessor beanProcessor = new BeanProcessor();
 
-    private String sql_insert_update;
-    private String sql_delete;
-    private String sql_select_by_primary_key;
-    private String sql_select_by_second_key;
-    private PropertyDescriptor[] props;
-    private Field primaryKey;
-    private Class<?> type;
+    private String sql_insert_update; // 插入、更新SQL
+    private String sql_delete; // 删除SQL
+    private String sql_select_by_primary_key; // 主键查询SQL
+    private String sql_select_by_second_key; // 索引查询SQL
+    private Field[] tableField; // 数据库表字段
+    private Field primaryKey; // 主键
+    private Class<?> type; // 实体类型
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -88,11 +83,11 @@ public class BaseDao<T>
 
     // 生成插入\更改操作SQL
     private String getInsertUpdateSQL0(Class<?> type) {
-        PropertyDescriptor[] props = propertyDescriptors(type);
+        Field[] fields = getTableField(type);
         String table = getTable(type);
-        String keys = getKeys(props);
-        String values = getValues(props);
-        String assign = getAssign(props);
+        String keys = getKeys(fields);
+        String values = getValues(fields);
+        String assign = getAssign(fields);
         String sql = SQL_INSERT_UPDATE.replace("$table", table);
         sql = sql.replace("$keys", keys);
         sql = sql.replace("$values", values);
@@ -100,29 +95,64 @@ public class BaseDao<T>
         return sql;
     }
 
+    // 获取数据库表字段
+    private Field[] getTableField(Class<?> c) {
+        if (this.tableField == null) {
+            synchronized (this) {
+                if (this.tableField == null) {
+                    this.tableField = generateTableField(c);
+                }
+            }
+        }
+        return this.tableField;
+    }
+
+    // 生成数据库表字段
+    private Field[] generateTableField(Class<?> c) {
+        Field[] fields = c.getDeclaredFields();
+        List<Field> list = new ArrayList<>();
+        for (Field field : fields) {
+            if (isTableField(field)) {
+                ensureAccessable(field);
+                list.add(field);
+            }
+        }
+        return list.toArray(new Field[list.size()]);
+    }
+
+    // 判断一个字段是否是数据库表字段
+    private boolean isTableField(Field field) {
+        return field.isAnnotationPresent(TableField.class);
+    }
+
+    // 确保非public字段都能直接访问
+    private void ensureAccessable(Field field) {
+        field.setAccessible(true);
+    }
+
     // 获取插入KEY
-    private String getKeys(PropertyDescriptor[] props) {
+    private String getKeys(Field[] fields) {
         StringBuilder sb = new StringBuilder();
-        for (PropertyDescriptor prop : props) {
-            sb.append(prop.getName()).append(",");
+        for (Field field : fields) {
+            sb.append(field.getName()).append(",");
         }
         return sb.substring(0, sb.length() - 1);
     }
 
     // 获取插入参数格式(?,?...)
-    private String getValues(PropertyDescriptor[] props) {
+    private String getValues(Field[] fields) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < props.length; i++) {
+        for (int i = 0; i < fields.length; i++) {
             sb.append("?,");
         }
         return sb.substring(0, sb.length() - 1);
     }
 
     // 获取SQL赋值格式(key1=?,key2=?...)
-    private String getAssign(PropertyDescriptor[] props) {
+    private String getAssign(Field[] fields) {
         StringBuilder sb = new StringBuilder();
-        for (PropertyDescriptor prop : props) {
-            sb.append(prop.getName()).append("=?,");
+        for (Field field : fields) {
+            sb.append(field.getName()).append("=?,");
         }
         return sb.substring(0, sb.length() - 1);
     }
@@ -195,25 +225,25 @@ public class BaseDao<T>
 
     // 获取插入\更改操作参数
     protected Object[] getInsertUpdateParam(Object obj) {
-        PropertyDescriptor[] props = this.props;
-        Object[] param = getInsertParam(obj, props);
+        Field[] fields = getTableField(this.type);
+        Object[] param = getInsertParam(obj, fields);
         Object[] result = new Object[param.length * 2];
         System.arraycopy(param, 0, result, 0, param.length);
         System.arraycopy(param, 0, result, param.length, param.length);
         return result;
     }
 
-    private Object[] getInsertParam(Object obj, PropertyDescriptor[] props) {
-        Object[] vals = new Object[props.length];
+    // 生成插入SQL参数列表
+    private Object[] getInsertParam(Object obj, Field[] fields) {
+        Object[] vals = new Object[fields.length];
         for (int i = 0; i < vals.length; i++) {
-            PropertyDescriptor prop = props[i];
+            Field field = fields[i];
             try {
-                vals[i] = prop.getReadMethod().invoke(obj);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                vals[i] = field.get(obj);
+            } catch (IllegalAccessException | IllegalArgumentException e) {
                 e.printStackTrace();
             }
         }
-
         return vals;
     }
 
@@ -259,32 +289,6 @@ public class BaseDao<T>
             }
         }
         return secondKey;
-    }
-
-    // 提取实体类属性
-    private PropertyDescriptor[] propertyDescriptors(Class<?> c) {
-        BeanInfo beanInfo = null;
-        try {
-            beanInfo = Introspector.getBeanInfo(c);
-        } catch (IntrospectionException e) {
-            throw new RuntimeException(e);
-        }
-
-        PropertyDescriptor[] props = beanInfo.getPropertyDescriptors();
-        PropertyDescriptor[] newProps = filterClass(props);
-        this.props = newProps;
-        return newProps;
-    }
-
-    // 过滤class属性，这不是我们需要的
-    private PropertyDescriptor[] filterClass(PropertyDescriptor[] source) {
-        List<PropertyDescriptor> list = new ArrayList<>(source.length - 1);
-        for (int i = 0; i < source.length; i++) {
-            if (!"class".equals(source[i].getName())) {
-                list.add(source[i]);
-            }
-        }
-        return list.toArray(new PropertyDescriptor[list.size()]);
     }
 
     // Bean processor -----------------------------------------------------

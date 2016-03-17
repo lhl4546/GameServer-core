@@ -6,6 +6,7 @@ package core.fire.database.example;
 import core.fire.database.PrimaryKey;
 import core.fire.database.SecondKey;
 import core.fire.database.Table;
+import core.fire.database.TableField;
 
 /**
  * @author lhl
@@ -16,8 +17,10 @@ import core.fire.database.Table;
 public class EntityExample
 {
     @PrimaryKey
+    @TableField
     private int id;
     @SecondKey
+    @TableField
     private String name;
 
     public int getId() {
