@@ -1,7 +1,7 @@
 /**
  * 
  */
-package core.fire.net.netty;
+package core.fire.net.tcp;
 
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.GeneratedMessage.Builder;

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import core.fire.database.DBService;
 import core.fire.executor.DispatcherHandler;
-import core.fire.net.netty.NettyServer;
+import core.fire.net.tcp.NettyServer;
 
 public class AppStart implements Component
 {
@@ -14,7 +14,7 @@ public class AppStart implements Component
     private AnnotationConfigApplicationContext app;
 
     static {
-        ConfigParser.parseFromClassPath("app.properties", Config.class);
+        Config.parse("app.properties");
     }
 
     public static void main(String[] args) {

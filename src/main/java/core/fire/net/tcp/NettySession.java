@@ -1,7 +1,7 @@
 /**
  * 
  */
-package core.fire.net.netty;
+package core.fire.net.tcp;
 
 import java.net.SocketAddress;
 import java.util.Map;

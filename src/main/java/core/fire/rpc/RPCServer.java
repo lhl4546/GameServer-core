@@ -42,7 +42,7 @@ public class RPCServer implements Component
 
     @Override
     public void start() throws Exception {
-        transport = new TNonblockingServerSocket(Config.RPC_PORT);
+        transport = new TNonblockingServerSocket(Config.getInt("RPC_PORT"));
         TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(transport);
         args.processor(multiplex).protocolFactory(protocol).selectorThreads(2).workerThreads(1);
         server = new TThreadedSelectorServer(args);
@@ -50,7 +50,7 @@ public class RPCServer implements Component
         // serve是个阻塞方法，启动线程调用避免阻塞后续操作
         new Thread(() -> server.serve(), "RPC_START").start();
 
-        LOG.debug("RPC server start listen on port {}", Config.RPC_PORT);
+        LOG.debug("RPC server start listen on port {}", Config.getInt("RPC_PORT"));
     }
 
     public void addProcessor(String serviceName, TProcessor processor) {
@@ -58,7 +58,7 @@ public class RPCServer implements Component
     }
 
     public void loadProcessor() throws Exception {
-        String searchPackages = Config.RPC_HANDLER_SCAN_PACKAGES;
+        String searchPackages = Config.getString("RPC_HANDLER_SCAN_PACKAGES");
         String[] packageArray = BaseUtil.split(searchPackages.trim(), ",");
         for (String onePackage : packageArray) {
             loadProcessor0(onePackage);

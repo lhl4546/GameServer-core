@@ -1,4 +1,4 @@
-package core.fire.net.netty;
+package core.fire.net.tcp;
 
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;

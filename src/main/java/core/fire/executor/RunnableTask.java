@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.net.NetSession;
-import core.fire.net.netty.Packet;
+import core.fire.net.tcp.Packet;
 
 /**
  * 可执行任务，配合消息队列{@link Sequence}使用可以达到消息队列自动执行的目的

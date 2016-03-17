@@ -17,7 +17,7 @@ public class ConnectionManager
     private ConnectionProvider provider;
 
     public ConnectionManager() {
-        this.provider = new ConnectionProviderImpl(Config.RPC_SERVER_HOST, Config.RPC_SERVER_PORT);
+        this.provider = new ConnectionProviderImpl(Config.getString("RPC_SERVER_HOST"), Config.getInt("RPC_SERVER_PORT"));
     }
 
     public TSocket getConnection() {

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package core.fire.net.netty;
+package core.fire.net.tcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class NettyServer implements Component
      * @param dispatcher 消息派发处理器
      */
     public NettyServer() {
-        this.port = Config.TCP_PORT;
+        this.port = Config.getInt("TCP_PORT");
         this.bootstrap = new ServerBootstrap();
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("ACCEPTOR"));
         int netiothreads = Runtime.getRuntime().availableProcessors() * 2;

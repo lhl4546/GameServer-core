@@ -20,7 +20,7 @@ import core.fire.Component;
 import core.fire.Config;
 import core.fire.NamedThreadFactory;
 import core.fire.net.NetSession;
-import core.fire.net.netty.Packet;
+import core.fire.net.tcp.Packet;
 import core.fire.util.BaseUtil;
 import core.fire.util.ClassUtil;
 
@@ -131,7 +131,7 @@ public final class DispatcherHandler implements Handler, Component
 
     @Override
     public void start() throws Exception {
-        loadHandler(Config.HANDLER_SCAN_PACKAGES);
+        loadHandler(Config.getString("HANDLER_SCAN_PACKAGES"));
         LOG.debug("DispatcherHandler start");
     }
 

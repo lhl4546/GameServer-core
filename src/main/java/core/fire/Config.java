@@ -3,6 +3,10 @@
  */
 package core.fire;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 /**
  * @author lhl
  *
@@ -10,15 +14,28 @@ package core.fire;
  */
 public class Config
 {
-    public static int TCP_PORT;
+    private static Properties prop;
 
-    public static int RPC_PORT;
+    /**
+     * 解析配置文件
+     * 
+     * @param configFile
+     */
+    public static void parse(String configFile) {
+        try (InputStream in = Config.class.getClassLoader().getResourceAsStream(configFile)) {
+            Properties prop = new Properties();
+            prop.load(in);
+            Config.prop = prop;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-    public static String RPC_SERVER_HOST;
+    public static int getInt(String key) {
+        return Integer.parseInt(prop.getProperty(key));
+    }
 
-    public static int RPC_SERVER_PORT;
-
-    public static String HANDLER_SCAN_PACKAGES;
-
-    public static String RPC_HANDLER_SCAN_PACKAGES;
+    public static String getString(String key) {
+        return prop.getProperty(key);
+    }
 }

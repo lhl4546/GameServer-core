@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.protobuf.GeneratedMessage;
 
 import core.fire.net.NetSession;
-import core.fire.net.netty.Packet;
+import core.fire.net.tcp.Packet;
 
 /**
  * {@code T}为具体请求类型

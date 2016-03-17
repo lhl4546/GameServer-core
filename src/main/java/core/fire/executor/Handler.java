@@ -4,7 +4,7 @@
 package core.fire.executor;
 
 import core.fire.net.NetSession;
-import core.fire.net.netty.Packet;
+import core.fire.net.tcp.Packet;
 
 /**
  * 逻辑处理器
