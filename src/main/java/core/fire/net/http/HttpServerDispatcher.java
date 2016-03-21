@@ -78,6 +78,8 @@ public class HttpServerDispatcher implements Component, HttpHandler
 
     @Override
     public void handle(Channel ch, String uri, Map<String, List<String>> parameter) {
+        LOG.debug("IP:{}, uri:{}, parameter:{}", ch.remoteAddress(), uri, parameter);
+
         HttpHandler handler = httpHandlerMap.get(uri);
         if (handler == null) {
             LOG.warn("No handler found for uri {}, channel will be closed", uri);
