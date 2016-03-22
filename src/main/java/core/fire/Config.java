@@ -19,7 +19,7 @@ public class Config
     /**
      * 解析配置文件
      * 
-     * @param configFile
+     * @param configFile 相对类路径文件名
      */
     public static void parse(String configFile) {
         try (InputStream in = Config.class.getClassLoader().getResourceAsStream(configFile)) {
@@ -27,7 +27,7 @@ public class Config
             prop.load(in);
             Config.prop = prop;
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
