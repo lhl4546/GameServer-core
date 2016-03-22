@@ -6,7 +6,7 @@ package core.fire.executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import core.fire.net.NetSession;
+import core.fire.net.tcp.NetSession;
 import core.fire.net.tcp.Packet;
 
 /**
@@ -21,19 +21,16 @@ public class RunnableTask implements Runnable
     private Handler handler; // 消息处理器
     private NetSession session; // 消息队列
     private Packet packet; // 消息包
-    private Sequence sequence; // 消息队列
 
     /**
      * @param handler 处理器
      * @param session 网络会话
      * @param packet 消息包
-     * @param sequence 任务队列
      */
-    public RunnableTask(Handler handler, NetSession session, Packet packet, Sequence sequence) {
+    public RunnableTask(Handler handler, NetSession session, Packet packet) {
         this.handler = handler;
         this.session = session;
         this.packet = packet;
-        this.sequence = sequence;
     }
 
     @Override
@@ -42,14 +39,12 @@ public class RunnableTask implements Runnable
             handler.handle(session, packet);
         } catch (Throwable t) {
             LOG.error("{}", toString(), t);
-        } finally {
-            sequence.dequeue();
         }
     }
 
     @Override
     public String toString() {
-        return "RunnableTask: [handler=" + handler.getClass() + ", session=" + session + ", pkt=" + packet + ", data="
-                + packet + "]";
+        return "RunnableTask: [handler=" + handler.getClass() + ", session=" + session + ", packet=" + packet
+                + ", data=" + packet.body + "]";
     }
 }

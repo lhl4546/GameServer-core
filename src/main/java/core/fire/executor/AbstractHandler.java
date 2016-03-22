@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.protobuf.GeneratedMessage;
 
-import core.fire.net.NetSession;
+import core.fire.net.tcp.NetSession;
 import core.fire.net.tcp.Packet;
 
 /**

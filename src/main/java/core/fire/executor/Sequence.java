@@ -9,7 +9,7 @@ import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 
 /**
- * 消息队列，保证同时只会有一条队列中的消息正在执行
+ * 任务队列，保证任务串行化执行。使用非常简单，实例化之后只需添加任务，无需管理任务的执行
  * 
  * @author lhl
  *
@@ -29,16 +29,27 @@ public final class Sequence
         this.queue = new LinkedList<>();
     }
 
-    public final void enqueue(Runnable r) {
+    /**
+     * 添加任务
+     * 
+     * @param r
+     */
+    public final void addTask(Runnable r) {
+        Runnable task = wrapTask(r);
         synchronized (queue) {
-            queue.offer(r);
+            queue.offer(task);
             if (queue.size() == 1) {
-                executor.submit(r);
+                executor.submit(task);
             }
         }
     }
 
-    public final void dequeue() {
+    /**
+     * 驱动任务执行
+     * <p>
+     * 从队首删除一个任务，如果队列仍然不为空，则继续从队首取出一个任务提交执行
+     */
+    private final void drive() {
         synchronized (queue) {
             queue.poll();
             if (!queue.isEmpty()) {
@@ -47,9 +58,42 @@ public final class Sequence
         }
     }
 
+    /**
+     * 返回当前剩余任务数量，可能包括正在执行的任务
+     * 
+     * @return
+     */
     public final int size() {
         synchronized (this.queue) {
             return queue.size();
+        }
+    }
+
+    /**
+     * 封装任务，以达到驱动队列自动执行的目的
+     * 
+     * @param task
+     * @return
+     */
+    private Runnable wrapTask(Runnable task) {
+        return new TaskWrapper(task);
+    }
+
+    private class TaskWrapper implements Runnable
+    {
+        private Runnable task;
+
+        TaskWrapper(Runnable task) {
+            this.task = task;
+        }
+
+        @Override
+        public void run() {
+            try {
+                task.run();
+            } finally {
+                drive();
+            }
         }
     }
 }

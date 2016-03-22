@@ -19,13 +19,13 @@ import com.google.protobuf.GeneratedMessage;
 import core.fire.Component;
 import core.fire.Config;
 import core.fire.NamedThreadFactory;
-import core.fire.net.NetSession;
+import core.fire.net.tcp.NetSession;
 import core.fire.net.tcp.Packet;
 import core.fire.util.BaseUtil;
 import core.fire.util.ClassUtil;
 
 /**
- * 事件派发处理器，负责将网络IO传过来的消息分发给指定处理器处理
+ * 请求派发处理器，负责将网络IO传过来的请求分发给指定处理器处理
  * 
  * @author lhl
  *
@@ -48,7 +48,16 @@ public final class DispatcherHandler implements Handler, Component
     public DispatcherHandler() {
         handlerMap = new HashMap<>();
         requestParamType = new HashMap<>();
-        executor = Executors.newFixedThreadPool(8, new NamedThreadFactory("LOGIC"));
+        initLogicThreadPool();
+    }
+
+    /**
+     * 初始化逻辑处理线程池
+     */
+    private void initLogicThreadPool() {
+        int threads = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(threads, new NamedThreadFactory("LOGIC"));
+        this.executor = executor;
     }
 
     /**
@@ -67,20 +76,20 @@ public final class DispatcherHandler implements Handler, Component
     }
 
     /**
-     * 将消息封装成任务提交到线程池执行
+     * 提交任务。如果session已经关联了{@code Sequence}则提交到{@code Sequence} 排队，否则直接提交给线程池。
      * 
      * @param session
      * @param handler
      * @param packet
      */
     private void submitTask(NetSession session, Handler handler, Packet packet) {
+        Runnable task = new RunnableTask(handler, session, packet);
         Object attachObj = session.getAttachment(SEQUENCE_KEY);
-
         if (attachObj != null || (attachObj instanceof Sequence)) {
             Sequence sequence = (Sequence) attachObj;
-            sequence.enqueue(new RunnableTask(handler, session, packet, sequence));
+            sequence.addTask(task);
         } else {
-            executor.submit(() -> handler.handle(session, packet));
+            executor.submit(task);
         }
     }
 

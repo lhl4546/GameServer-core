@@ -10,6 +10,7 @@ import io.netty.channel.Channel;
 
 /**
  * HTTP处理器接口，自定义处理器不宜直接实现此接口，应继承{@linkplain BaseHttpHandler}基类
+ * 
  * @author lhl
  *
  *         2016年3月16日 下午4:26:27

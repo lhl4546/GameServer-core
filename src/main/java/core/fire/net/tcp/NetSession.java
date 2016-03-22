@@ -1,7 +1,7 @@
 /**
  * 
  */
-package core.fire.net;
+package core.fire.net.tcp;
 
 import java.net.SocketAddress;
 

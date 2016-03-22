@@ -43,7 +43,7 @@ public class NettyServer implements Component
         this.port = Config.getInt("TCP_PORT");
         this.bootstrap = new ServerBootstrap();
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("ACCEPTOR"));
-        int netiothreads = Runtime.getRuntime().availableProcessors() * 2;
+        int netiothreads = Runtime.getRuntime().availableProcessors();
         this.childgroup = new NioEventLoopGroup(netiothreads, new NamedThreadFactory("NET_IO"));
     }
 

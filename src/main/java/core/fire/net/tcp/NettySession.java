@@ -7,7 +7,6 @@ import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import core.fire.net.NetSession;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 

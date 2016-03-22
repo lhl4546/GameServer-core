@@ -3,11 +3,13 @@
  */
 package core.fire.executor;
 
-import core.fire.net.NetSession;
+import core.fire.net.tcp.NetSession;
 import core.fire.net.tcp.Packet;
 
 /**
  * 逻辑处理器
+ * <p>
+ * 请勿直接实现该接口，继承{@linkplain AbstractHandler}也许是个更好的选择
  * 
  * @author lhl
  *
@@ -15,5 +17,9 @@ import core.fire.net.tcp.Packet;
  */
 public interface Handler
 {
+    /**
+     * @param session 网络会话
+     * @param packet 请求数据
+     */
     void handle(NetSession session, Packet packet);
 }
