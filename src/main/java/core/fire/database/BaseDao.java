@@ -321,27 +321,27 @@ public class BaseDao<T>
     }
 
     // 有则更新，无则插入
-    protected void insertOrUpdate(T t) {
+    public void insertOrUpdate(T t) {
         String sql = getInsertUpdateSQL();
         Object[] param = getInsertUpdateParam(t);
         getJdbcTemplate().update(sql, param);
     }
 
     // 删除
-    protected void delete(T t) {
+    public void delete(T t) {
         String sql = getDeleteSQL();
         Object param = getDeleteParam(t);
         getJdbcTemplate().update(sql, param);
     }
 
     // 根据主键查询，需要实体类有标注了@PrimaryKey注解的字段
-    protected T selectByPrimarykey(Object primaryKey) {
+    public T selectByPrimarykey(Object primaryKey) {
         String sql = getSelectByPrimaryKeySQL();
         return getJdbcTemplate().query(sql, new Object[] { primaryKey }, beanExtrator);
     }
 
     // 根据索引查询，需要实体类有标注了@SecondKey注解的字段
-    protected List<T> selectBySecondKey(Object secondKey) {
+    public List<T> selectBySecondKey(Object secondKey) {
         String sql = getSelectBySecondKeySQL();
         return getJdbcTemplate().query(sql, new Object[] { secondKey }, beanListExtractor);
     }
@@ -353,40 +353,38 @@ public class BaseDao<T>
     }
 
     // 异步插入|更新
-    protected void asyncInsertOrUpdate(T t) {
+    public void asyncInsertOrUpdate(T t) {
         Runnable task = () -> insertOrUpdate(t);
         addTask(task);
     }
 
     // 异步删除
-    protected void asyncDelete(T t) {
+    public void asyncDelete(T t) {
         Runnable task = () -> delete(t);
         addTask(task);
     }
 
     // 异步查询(根据主键)，需要提供一个回调接口以执行后续操作
-    protected void asyncSelectByPrimaryKey(Object primaryKey, Callback cb) {
-        Callback newCb = Objects.requireNonNull(cb);
+    public void asyncSelectByPrimaryKey(Object primaryKey, Callback cb) {
         Runnable task = () -> {
             try {
                 T t = selectByPrimarykey(primaryKey);
-                newCb.onSuccess(t);
+                cb.onSuccess(t);
             } catch (Exception e) {
-                newCb.onError(e);
+                cb.onError(e);
             }
         };
         addTask(task);
     }
 
     // 异步查询(根据索引)，需要提供一个回调接口以执行后续操作
-    protected void asyncSelectBySecondKey(Object secondKey, Callback cb) {
-        Callback newCb = Objects.requireNonNull(cb);
+    public void asyncSelectBySecondKey(Object secondKey, Callback cb) {
         Runnable task = () -> {
             try {
                 List<T> list = selectBySecondKey(secondKey);
-                newCb.onSuccess(list);
+                cb.onSuccess(list);
             } catch (Exception e) {
-                newCb.onError(e);
+                cb.onError(e);
             }
         };
         addTask(task);
