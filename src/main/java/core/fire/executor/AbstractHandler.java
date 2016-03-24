@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.protobuf.GeneratedMessage;
 
-import core.fire.net.tcp.NetSession;
 import core.fire.net.tcp.Packet;
+import io.netty.channel.Channel;
 
 /**
  * {@code T}为具体请求类型
@@ -23,9 +23,9 @@ public abstract class AbstractHandler<T extends GeneratedMessage> implements Han
     private DispatcherHandler dispatcher;
 
     @Override
-    public final void handle(NetSession session, Packet packet) {
+    public final void handle(Channel channel, Packet packet) {
         T message = parseParam(packet);
-        handle(session, message);
+        handle(channel, message);
     }
 
     /**
@@ -44,8 +44,8 @@ public abstract class AbstractHandler<T extends GeneratedMessage> implements Han
     }
 
     /**
-     * @param session
+     * @param channel
      * @param message 当请求{@code Packet}的包体{@code body}为空时该参数为空
      */
-    protected abstract void handle(NetSession session, T message);
+    protected abstract void handle(Channel channel, T message);
 }

@@ -20,6 +20,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * 仅适用于Http GET请求
+ * 
  * @author lhl
  *
  *         2016年3月17日 下午3:27:46

@@ -3,8 +3,8 @@
  */
 package core.fire.executor;
 
-import core.fire.net.tcp.NetSession;
 import core.fire.net.tcp.Packet;
+import io.netty.channel.Channel;
 
 /**
  * 逻辑处理器
@@ -18,8 +18,8 @@ import core.fire.net.tcp.Packet;
 public interface Handler
 {
     /**
-     * @param session 网络会话
+     * @param channel 网络会话
      * @param packet 请求数据
      */
-    void handle(NetSession session, Packet packet);
+    void handle(Channel channel, Packet packet);
 }

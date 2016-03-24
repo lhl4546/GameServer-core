@@ -19,10 +19,11 @@ import com.google.protobuf.GeneratedMessage;
 import core.fire.Component;
 import core.fire.Config;
 import core.fire.NamedThreadFactory;
-import core.fire.net.tcp.NetSession;
 import core.fire.net.tcp.Packet;
 import core.fire.util.BaseUtil;
 import core.fire.util.ClassUtil;
+import io.netty.channel.Channel;
+import io.netty.util.AttributeKey;
 
 /**
  * 请求派发处理器，负责将网络IO传过来的请求分发给指定处理器处理
@@ -41,9 +42,9 @@ public final class DispatcherHandler implements Handler, Component
     private Map<Short, GeneratedMessage> requestParamType;
     // 指令处理线程池
     private ExecutorService executor;
-    // 消息队列将被作为附件设置到NetSession上
+    // 消息队列将被作为附件设置到channel上
     // 绑定了消息队列的session的事件将被提交到消息队列执行，否则统一提交到公用消息队列
-    public static final String SEQUENCE_KEY = "SEQUENCE_KEY";
+    public static final AttributeKey<Sequence> SEQUENCE_KEY = AttributeKey.valueOf("SEQUENCE_KEY");
 
     public DispatcherHandler() {
         handlerMap = new HashMap<>();
@@ -64,27 +65,27 @@ public final class DispatcherHandler implements Handler, Component
      * 该方法将在Netty I/O线程池中运行
      */
     @Override
-    public void handle(NetSession session, Packet packet) {
+    public void handle(Channel channel, Packet packet) {
         Handler handler = handlerMap.get(Short.valueOf(packet.code));
         if (handler == null) {
             LOG.warn("No handler found for code {}, session will be closed", packet.code);
-            session.close();
+            channel.close();
             return;
         }
 
-        submitTask(session, handler, packet);
+        submitTask(channel, handler, packet);
     }
 
     /**
      * 提交任务。如果session已经关联了{@code Sequence}则提交到{@code Sequence} 排队，否则直接提交给线程池。
      * 
-     * @param session
+     * @param channel
      * @param handler
      * @param packet
      */
-    private void submitTask(NetSession session, Handler handler, Packet packet) {
-        Runnable task = new RunnableTask(handler, session, packet);
-        Object attachObj = session.getAttachment(SEQUENCE_KEY);
+    private void submitTask(Channel channel, Handler handler, Packet packet) {
+        Runnable task = new RunnableTask(handler, channel, packet);
+        Object attachObj = channel.attr(SEQUENCE_KEY).get();
         if (attachObj != null || (attachObj instanceof Sequence)) {
             Sequence sequence = (Sequence) attachObj;
             sequence.addTask(task);
