@@ -26,7 +26,6 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter
 
     public void process(Channel ch, HttpRequest request) throws URISyntaxException {
         URI uri = new URI(request.getUri());
-        System.out.println(uri.getPath());
         QueryStringDecoder queryParser = new QueryStringDecoder(uri);
         dispatcher.handle(ch, uri.getPath(), queryParser.parameters());
     }
