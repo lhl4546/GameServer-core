@@ -10,7 +10,6 @@ import core.fire.Component;
 import core.fire.Config;
 import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -51,8 +50,7 @@ public class NettyServer implements Component
     public void start() throws Exception {
         bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(getInitializer())
                 .option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_LINGER, 0)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+                .childOption(ChannelOption.TCP_NODELAY, true);
         ChannelFuture future = bootstrap.bind(port);
         serverSocket = future.sync().channel();
         LOG.debug("NettyServer start listen on port {}", port);
