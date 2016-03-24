@@ -4,6 +4,7 @@
 package core.fire.rpc.pool;
 
 import org.apache.thrift.transport.TSocket;
+import org.springframework.stereotype.Component;
 
 import core.fire.Config;
 
@@ -12,6 +13,7 @@ import core.fire.Config;
  *
  *         2016年2月22日 下午3:41:04
  */
+@Component
 public class ConnectionManager
 {
     private ConnectionProvider provider;
