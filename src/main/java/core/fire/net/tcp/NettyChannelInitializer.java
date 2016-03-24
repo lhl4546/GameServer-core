@@ -5,6 +5,7 @@ package core.fire.net.tcp;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPipeline;
 
 /**
@@ -14,19 +15,14 @@ import io.netty.channel.ChannelPipeline;
  */
 public class NettyChannelInitializer extends ChannelInitializer<Channel>
 {
-    private NettyHandler netHandler;
-    private NettyCodecFactory codecFactory;
-
-    public NettyChannelInitializer(NettyHandler netHandler, NettyCodecFactory codecFactory) {
-        this.netHandler = netHandler;
-        this.codecFactory = codecFactory;
-    }
+    private NettyHandler netHandler = new NettyHandler();
+    private ChannelOutboundHandler encoder = new PlainProtocolEncoder();
 
     @Override
     protected void initChannel(Channel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast("ENCODER", codecFactory.getEncoder());
-        pipeline.addLast("DECODER", codecFactory.getDecoder());
+        pipeline.addLast("ENCODER", encoder);
+        pipeline.addLast("DECODER", new PlainProtocolDecoder());
         pipeline.addLast("NET_HANDLER", netHandler);
     }
 }

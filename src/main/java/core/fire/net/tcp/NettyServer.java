@@ -59,9 +59,7 @@ public class NettyServer implements Component
     }
 
     private ChannelInitializer<Channel> getInitializer() {
-        NettyHandler nettyHandler = new NettyHandler();
-        NettyCodecFactory codecFactory = new PlainCodecFactory();
-        return new NettyChannelInitializer(nettyHandler, codecFactory);
+        return new NettyChannelInitializer();
     }
 
     @Override
