@@ -85,9 +85,8 @@ public final class DispatcherHandler implements Handler, Component
      */
     private void submitTask(Channel channel, Handler handler, Packet packet) {
         Runnable task = new RunnableTask(handler, channel, packet);
-        Object attachObj = channel.attr(SEQUENCE_KEY).get();
-        if (attachObj != null || (attachObj instanceof Sequence)) {
-            Sequence sequence = (Sequence) attachObj;
+        Sequence sequence = channel.attr(SEQUENCE_KEY).get();
+        if (sequence != null) {
             sequence.addTask(task);
         } else {
             executor.submit(task);
