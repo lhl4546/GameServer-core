@@ -1,9 +1,4 @@
-/**
- * 
- */
 package core.fire.net.http;
-
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,44 +14,52 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
- * 仅适用于Http GET请求
+ * 基于Netty实现的Http服务器
  * 
  * @author lhl
  *
- *         2016年3月17日 下午3:27:46
+ *         2016年3月28日 下午3:48:06
  */
-@org.springframework.stereotype.Component
 public class HttpServer implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpServer.class);
-    private EventLoopGroup acceptor;
-    private EventLoopGroup selector;
-    private Channel ch;
+    private ServerBootstrap bootstrap;
+    private EventLoopGroup bossgroup;
+    private EventLoopGroup childgroup;
+    private Channel serverSocket;
+    private int port;
+    private HttpServerDispatcher dispatcher;
 
-    public HttpServer() {
-        acceptor = new NioEventLoopGroup(1, new NamedThreadFactory("HTTP_ACCEPT"));
-        int netiothreads = Runtime.getRuntime().availableProcessors();
-        selector = new NioEventLoopGroup(netiothreads, new NamedThreadFactory("HTTP_IO"));
+    public HttpServer(HttpServerDispatcher dispatcher) {
+        this.port = Config.getInt("HTTP_PORT");
+        this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("HTTP-ACCEPTOR"));
+        int netioThreads = Runtime.getRuntime().availableProcessors();
+        this.childgroup = new NioEventLoopGroup(netioThreads, new NamedThreadFactory("HTTP-IO"));
+        this.bootstrap = new ServerBootstrap();
+        this.dispatcher = dispatcher;
     }
 
     @Override
     public void start() throws Exception {
-        ServerBootstrap boot = new ServerBootstrap();
-        boot.option(ChannelOption.SO_BACKLOG, 1024);
-        boot.group(acceptor, selector);
-        boot.channel(NioServerSocketChannel.class);
-        boot.childHandler(new HttpServerInitializer());
-        int port = Config.getInt("HTTP_PORT");
-        ch = boot.bind(port).sync().channel();
-        LOG.debug("Http server start listen on {}", port);
+        bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
+        bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class)
+                .childHandler(new HttpServerInitializer(dispatcher)).childOption(ChannelOption.SO_LINGER, 0)
+                .childOption(ChannelOption.TCP_NODELAY, true);
+        serverSocket = bootstrap.bind(port).sync().channel();
+        LOG.debug("Http server start listen on port {}", port);
     }
 
     @Override
     public void stop() throws Exception {
-        if (ch != null) {
-            ch.close();
+        if (serverSocket != null) {
+            serverSocket.close();
         }
-        acceptor.shutdownGracefully(0L, 0L, TimeUnit.SECONDS);
-        selector.shutdownGracefully(0L, 0L, TimeUnit.SECONDS);
+        if (bossgroup != null) {
+            bossgroup.shutdownGracefully();
+        }
+        if (childgroup != null) {
+            childgroup.shutdownGracefully();
+        }
+        LOG.debug("Http server stop");
     }
 }

@@ -1,7 +1,8 @@
-/**
- * 
- */
 package core.fire.net.http;
+
+import static core.fire.net.http.HttpInboundHandler.KEY_PATH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,26 +15,71 @@ import core.fire.Component;
 import core.fire.Config;
 import core.fire.util.BaseUtil;
 import core.fire.util.ClassUtil;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 
 /**
+ * Http请求分发器
+ * 
  * @author lhl
  *
- *         2016年3月17日 下午4:06:46
+ *         2016年3月28日 下午4:38:37
  */
-@org.springframework.stereotype.Component
 public class HttpServerDispatcher implements Component, HttpHandler
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpServerDispatcher.class);
-    // <uri, 处理器>
-    private Map<String, HttpHandler> httpHandlerMap = new HashMap<>();
+    private Map<String, HttpHandler> handlerMap;
+
+    public HttpServerDispatcher() {
+        handlerMap = new HashMap<>();
+    }
+
+    @Override
+    public void handle(Channel channel, Map<String, List<String>> parameter) {
+        String uri = channel.attr(KEY_PATH).get();
+        HttpHandler handler = handlerMap.get(uri);
+        if (handler == null) {
+            LOG.warn("No handler found for uri {}, session will be close", uri);
+            sendError(channel, "Not found", HttpResponseStatus.NOT_FOUND);
+            return;
+        }
+
+        LOG.debug("Request ip: {}, uri: {}, parameter: {}", channel.remoteAddress(), uri, parameter);
+        handler.handle(channel, parameter);
+    }
+
+    /**
+     * 发送应答信息。发送完毕后将会关闭连接
+     * 
+     * @param channel
+     * @param message 描述信息
+     * @param status HTTP状态码
+     */
+    private void sendError(Channel channel, String message, HttpResponseStatus status) {
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status,
+                Unpooled.copiedBuffer(message.getBytes()));
+        response.headers().set(CONTENT_TYPE, "text/plain");
+        response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
+        channel.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
 
     @Override
     public void start() throws Exception {
-        loadHandler(Config.getString("HTTP_HANDLER_SCAN_PACKAGES"));
+        loadHandler(Config.getString("HANDLER_SCAN_PACKAGES"));
         LOG.debug("HttpServerDispatcher start");
     }
 
+    /**
+     * 加载指令处理器
+     * 
+     * @param searchPackage 搜索包名，多个包名使用逗号分割
+     * @throws Exception
+     */
     private void loadHandler(String searchPackage) throws Exception {
         if (BaseUtil.isNullOrEmpty(searchPackage)) {
             return;
@@ -42,30 +88,21 @@ public class HttpServerDispatcher implements Component, HttpHandler
         String[] packages = BaseUtil.split(searchPackage.trim(), ",");
         for (String onePackage : packages) {
             if (!BaseUtil.isNullOrEmpty(onePackage)) {
-                LOG.debug("Load http handler from package {}", onePackage);
+                LOG.debug("Load handler from package {}", onePackage);
                 List<Class<?>> classList = ClassUtil.getClasses(onePackage);
                 for (Class<?> handler : classList) {
                     HttpRequestHandler annotation = handler.getAnnotation(HttpRequestHandler.class);
-                    if (annotation != null) {
-                        String uri = annotation.uri();
-                        HttpHandler handlerInstance = (HttpHandler) handler.newInstance();
-                        addHandler(uri, handlerInstance);
+                    if (annotation != null && annotation.isEnabled()) {
+                        String path = annotation.path();
+                        addHandler(path, (HttpHandler) handler.newInstance());
                     }
                 }
             }
         }
     }
 
-    /**
-     * 注册指令处理器
-     * 
-     * @param uri
-     * @param handler
-     * @return 若该指令已注册过则返回之前注册的处理器，否则返回null
-     * @throws IllegalStateException
-     */
-    private void addHandler(String uri, HttpHandler handler) throws IllegalStateException {
-        HttpHandler oldHandler = httpHandlerMap.put(uri, handler);
+    private void addHandler(String uri, HttpHandler handler) {
+        HttpHandler oldHandler = handlerMap.put(uri, handler);
         if (oldHandler != null) {
             throw new IllegalStateException("Duplicate handler for uri " + uri + ", old: "
                     + oldHandler.getClass().getName() + ", new: " + handler.getClass().getName());
@@ -74,19 +111,6 @@ public class HttpServerDispatcher implements Component, HttpHandler
 
     @Override
     public void stop() throws Exception {
-    }
-
-    @Override
-    public void handle(Channel ch, String uri, Map<String, List<String>> parameter) {
-        LOG.debug("IP:{}, uri:{}, parameter:{}", ch.remoteAddress(), uri, parameter);
-
-        HttpHandler handler = httpHandlerMap.get(uri);
-        if (handler == null) {
-            LOG.warn("No handler found for uri {}, channel will be closed", uri);
-            ch.close();
-            return;
-        }
-
-        handler.handle(ch, uri, parameter);
+        LOG.debug("HttpServerDispatcher stop");
     }
 }

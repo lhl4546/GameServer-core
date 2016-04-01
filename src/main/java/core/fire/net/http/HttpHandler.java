@@ -9,13 +9,19 @@ import java.util.Map;
 import io.netty.channel.Channel;
 
 /**
- * HTTP处理器接口，自定义处理器不宜直接实现此接口，应继承{@linkplain BaseHttpHandler}基类
+ * GET/POST请求处理器。发送应答是子类的责任
  * 
  * @author lhl
  *
- *         2016年3月16日 下午4:26:27
+ *         2016年3月28日 下午3:51:19
  */
 public interface HttpHandler
 {
-    void handle(Channel ch, String uri, Map<String, List<String>> parameter);
+    /**
+     * Http请求处理接口(GET/POST)
+     * 
+     * @param channel
+     * @param parameter
+     */
+    void handle(Channel channel, Map<String, List<String>> parameter);
 }
