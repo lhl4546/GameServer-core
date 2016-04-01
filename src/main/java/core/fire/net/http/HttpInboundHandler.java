@@ -92,9 +92,8 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter
 
                 if (chunk instanceof LastHttpContent) {
                     reset();
+                    dispatch(ctx.channel(), parameter);
                 }
-
-                dispatch(ctx.channel(), parameter);
             }
         }
     }
