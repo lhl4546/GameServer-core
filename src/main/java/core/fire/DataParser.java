@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -140,7 +141,7 @@ public class DataParser
                 throw new IllegalStateException(msg);
             }
 
-            Map<String, String> ret = new HashMap<>();
+            Map<String, String> ret = new LinkedHashMap<>();
             for (int i = 0; i < keys.length; i++) {
                 ret.put(keys[i], values[i]);
             }
