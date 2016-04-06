@@ -34,7 +34,7 @@ public class BaseDao<T>
 {
     private static final String SQL_INSERT_UPDATE = "INSERT INTO $table ($keys) VALUES ($values) "
             + "ON DUPLICATE KEY UPDATE $assign";
-    private static final String SQL_DELETE = "DELETE FROM $table WHERE $primarykey=?";
+    private static final String SQL_DELETE_BY_PRIMARY_KEY = "DELETE FROM $table WHERE $primarykey=?";
     private static final String SQL_SELECT_BY_PRIMARY_KEY = "SELECT * FROM $table WHERE $primarykey=?";
     private static final String SQL_SELECT_BY_SECOND_KEY = "SELECT * FROM $table WHERE $secondkey=?";
     private static final BeanProcessor beanProcessor = new BeanProcessor();
@@ -61,30 +61,22 @@ public class BaseDao<T>
 
     @PostConstruct
     public void initialize() {
-        getInsertUpdateSQL();
-        getDeleteSQL();
-        getSelectByPrimaryKeySQL();
-        getSelectBySecondKeySQL();
+        initializeInsertUpdateSQL();
+        initializeDeleteSQL();
+        initializeSelectByPrimaryKeySQL();
+        initializeSelectBySecondKeySQL();
+        initializeTableField(type);
     }
 
     // SQL generator ------------------------
-    // 获取插入\更改操作SQL
-    protected String getInsertUpdateSQL() {
-        if (sql_insert_update == null) {
-            synchronized (this) {
-                if (sql_insert_update == null) {
-                    sql_insert_update = getInsertUpdateSQL0(type);
-                }
-            }
-        }
-
-        return sql_insert_update;
+    protected void initializeInsertUpdateSQL() {
+        this.sql_insert_update = getInsertUpdateSQL0(type);
     }
 
     // 生成插入\更改操作SQL
     private String getInsertUpdateSQL0(Class<?> type) {
         Field[] fields = getTableField(type);
-        String table = getTable(type);
+        String table = getTableName(type);
         String keys = getKeys(fields);
         String values = getValues(fields);
         String assign = getAssign(fields);
@@ -95,16 +87,18 @@ public class BaseDao<T>
         return sql;
     }
 
+    // 获取插入\更改操作SQL
+    protected String getInsertUpdateSQL() {
+        return sql_insert_update;
+    }
+
     // 获取数据库表字段
     private Field[] getTableField(Class<?> c) {
-        if (this.tableField == null) {
-            synchronized (this) {
-                if (this.tableField == null) {
-                    this.tableField = generateTableField(c);
-                }
-            }
-        }
-        return this.tableField;
+        return tableField;
+    }
+
+    protected void initializeTableField(Class<?> c) {
+        this.tableField = generateTableField(c);
     }
 
     // 生成数据库表字段
@@ -157,44 +151,36 @@ public class BaseDao<T>
         return sb.substring(0, sb.length() - 1);
     }
 
-    // 获取删除操作SQL
-    protected String getDeleteSQL() {
-        if (sql_delete == null) {
-            synchronized (this) {
-                if (sql_delete == null) {
-                    sql_delete = getDeleteSQL0(type);
-                }
-            }
-        }
-
-        return sql_delete;
+    protected void initializeDeleteSQL() {
+        this.sql_delete = getDeleteSQL0(type);
     }
 
     // 生成删除操作SQL
     private String getDeleteSQL0(Class<?> type) {
-        String table = getTable(type);
+        String table = getTableName(type);
         String primaryKey = getPrimaryKey(type);
-        String sql = SQL_DELETE.replace("$table", table);
+        String sql = SQL_DELETE_BY_PRIMARY_KEY.replace("$table", table);
         sql = sql.replace("$primarykey", primaryKey);
         return sql;
     }
 
+    // 获取删除操作SQL
+    protected String getDeleteSQL() {
+        return sql_delete;
+    }
+
     // 获取主键查询操作SQL
     protected String getSelectByPrimaryKeySQL() {
-        if (sql_select_by_primary_key == null) {
-            synchronized (this) {
-                if (sql_select_by_primary_key == null) {
-                    sql_select_by_primary_key = getSelectByPrimaryKeySQL0(type);
-                }
-            }
-        }
-
         return sql_select_by_primary_key;
+    }
+
+    protected void initializeSelectByPrimaryKeySQL() {
+        sql_select_by_primary_key = getSelectByPrimaryKeySQL0(type);
     }
 
     // 生成主键查询操作SQL
     private String getSelectByPrimaryKeySQL0(Class<?> type) {
-        String table = getTable(type);
+        String table = getTableName(type);
         String primaryKey = getPrimaryKey(type);
         String sql = SQL_SELECT_BY_PRIMARY_KEY.replace("$table", table);
         sql = sql.replace("$primarykey", primaryKey);
@@ -203,23 +189,21 @@ public class BaseDao<T>
 
     // 获取其他关键字查询操作SQL
     protected String getSelectBySecondKeySQL() {
-        if (sql_select_by_second_key == null) {
-            synchronized (this) {
-                if (sql_select_by_second_key == null) {
-                    sql_select_by_second_key = getSelectBySecondKeySQL0(type);
-                }
-            }
-        }
-
         return sql_select_by_second_key;
+    }
+
+    protected void initializeSelectBySecondKeySQL() {
+        this.sql_select_by_second_key = getSelectBySecondKeySQL0(type);
     }
 
     // 生成其他关键字查询操作SQL
     private String getSelectBySecondKeySQL0(Class<?> type) {
-        String table = getTable(type);
+        String table = getTableName(type);
         String secondKey = getSecondKey(type);
         String sql = SQL_SELECT_BY_SECOND_KEY.replace("$table", table);
-        sql = sql.replace("$secondkey", secondKey);
+        if (secondKey != null) {
+            sql = sql.replace("$secondkey", secondKey);
+        }
         return sql;
     }
 
@@ -258,24 +242,30 @@ public class BaseDao<T>
     }
 
     // 获取实体类对应的数据表名，由Table注解获得
-    private String getTable(Class<?> type) {
+    private String getTableName(Class<?> type) {
         Table tableAnnotation = type.getAnnotation(Table.class);
+        if (tableAnnotation == null)
+            throw new IllegalStateException("Table annotation not found for type " + type.getName());
+
         return tableAnnotation.value();
     }
 
     // 获取实体类主键，由PrimaryKey注解获得
     private String getPrimaryKey(Class<?> type) {
-        String primaryKey = null;
+        if (this.primaryKey != null)
+            return this.primaryKey.getName();
+
         Field[] fields = type.getDeclaredFields();
         for (Field field : fields) {
             PrimaryKey keyAnnotation = field.getAnnotation(PrimaryKey.class);
             if (keyAnnotation != null) {
-                primaryKey = field.getName();
                 field.setAccessible(true);
                 this.primaryKey = field;
+                return field.getName();
             }
         }
-        return primaryKey;
+
+        throw new IllegalStateException("Primary key not found for type " + type.getName());
     }
 
     // 获取实体类第二主键(索引)，由SecondKey获得
