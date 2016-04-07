@@ -187,4 +187,37 @@ public final class DispatcherHandler implements Handler, Component
         BaseUtil.shutdownThreadPool(executor, 5 * 1000);
         LOG.debug("DispatcherHandler stop");
     }
+
+    static class RunnableTask implements Runnable
+    {
+        private static final Logger LOG = LoggerFactory.getLogger(RunnableTask.class);
+        private Handler handler; // 消息处理器
+        private Channel channel; // 网络连接
+        private Packet packet; // 消息包
+
+        /**
+         * @param handler 处理器
+         * @param session 网络会话
+         * @param packet 消息包
+         */
+        public RunnableTask(Handler handler, Channel channel, Packet packet) {
+            this.handler = handler;
+            this.channel = channel;
+            this.packet = packet;
+        }
+
+        @Override
+        public void run() {
+            try {
+                handler.handle(channel, packet);
+            } catch (Throwable t) {
+                LOG.error("{}", toString(), t);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "RunnableTask: [channel=" + channel + ", packet=" + packet + ", data=" + packet.body + "]";
+        }
+    }
 }
