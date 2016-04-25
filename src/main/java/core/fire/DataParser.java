@@ -32,13 +32,22 @@ import java.util.Map;
  * <p>
  * <ul>
  * <li>java类需提供常用getter\setter方法</li>
- * <li>数据文件前三行为元数据行，第一行为字段名，第二、三行自行使用，第四行开始是数据本身</li>
+ * <li>数据文件第一行为字段名，第二、三行自定义，第四行开始是数据</li>
  * <li>列之间用tab键分隔</li>
- * <li>类字段命名应与数据文件字段名一致，若不一致应使用别名注解{@link PropertyAlias}将类字段映射到数据文件字段</li>
+ * <li>类字段命名应与数据文件字段名一致(大小写不敏感)，若不一致应使用别名注解{@link PropertyAlias}将类字段映射到数据文件字段
+ * </li>
  * <li>数据文件配置的字段值不允许空着</li>
  * <li>数据文件支持UTF-8编码</li>
  * <li>自动跳过空行</li>
  * </ul>
+ * 支持以下特性
+ * <ul>
+ * <li>IntArray类型。若配置字段为IntArray类型(形如1;2;3，特征是用分号分隔的数字)，则将对应的Java类字段定义为int[]
+ * 可实现自动解析，即将IntArray解析为int[]</li>
+ * <li>FloatArray类型。若配置字段为FloatArray类型(形如1.1;2.2;3.3，特征是用分号分隔的数字)，
+ * 则将对应的Java类字段定义为float[] 可实现自动解析，即将FloatArray解析为float[]</li>
+ * </ul>
+ * 以上特殊类型空值填"null"字符串
  * 
  * @author lhl
  *
@@ -74,7 +83,7 @@ public class DataParser
      * 查找属性别名
      * 
      * @param type
-     * @return
+     * @return key=配置字段名，value=类字段名
      */
     private static <T> Map<String, String> findOverrideProperties(Class<T> type) {
         Map<String, String> ret = new HashMap<>();
@@ -82,19 +91,20 @@ public class DataParser
         for (Field field : fields) {
             PropertyAlias anno = field.getAnnotation(PropertyAlias.class);
             if (anno != null) {
-                ret.put(anno.name(), field.getName());
+                ret.put(anno.value(), field.getName());
             }
         }
         return ret;
     }
 
+    // 将TXT文件逐行解析为字段名与值的映射
     private static class TxtParser
     {
         // 带BOM的UTF-8格式文件头部3字节
-        private static byte[] BOM_HEADER = { -17, -69, -65 };
+        static final byte[] BOM_HEADER = { -17, -69, -65 };
 
         /**
-         * 将数据文件按行解析为包含map的list，一行数据解析为一个map，map的key为数据字段名，value为字段值
+         * 将数据文件按行解析为包含map的list，一行数据解析为一个map，map的key为字段名，value为字段值
          * <p>
          * 数据文件仅支持UTF8编码
          * 
@@ -102,14 +112,16 @@ public class DataParser
          * @return
          * @throws IOException
          */
-        private static List<Map<String, String>> parseDataToMap(String path) throws IOException {
+        static List<Map<String, String>> parseDataToMap(String path) throws IOException {
             // 预处理文件，去除BOM文件头
             InputStream in = DataParser.class.getClassLoader().getResourceAsStream(path);
             if (in == null) {
                 throw new IllegalArgumentException("文件" + path + "不存在");
             }
 
-            preprocessBOM(in);
+            if (!preprocessBOM(in)) {
+                in = DataParser.class.getClassLoader().getResourceAsStream(path);
+            }
 
             try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(in))) {
                 // 第一行，表头
@@ -132,12 +144,11 @@ public class DataParser
             }
         }
 
-        private static Map<String, String> lineToMap(String path, String[] keys, String line, int lineNo) {
+        static Map<String, String> lineToMap(String path, String[] keys, String line, int lineNo) {
             String[] values = line.split("\t");
 
             if (values.length != keys.length) {
-                String msg = "文件" + path + " key与value个数不一致, 行号: " + lineNo + ", key:" + Arrays.toString(keys)
-                        + ", value:" + Arrays.toString(values);
+                String msg = "文件" + path + " key与value个数不一致, 行号: " + lineNo + ", key:" + Arrays.toString(keys) + ", value:" + Arrays.toString(values);
                 throw new IllegalStateException(msg);
             }
 
@@ -152,15 +163,13 @@ public class DataParser
          * 预处理BOM，去除BOM文件头
          * 
          * @param in
+         * @return 返回true表示文件包含BOM头
          * @throws IOException
          */
-        private static void preprocessBOM(InputStream in) throws IOException {
+        static boolean preprocessBOM(InputStream in) throws IOException {
             byte[] bomHeader = new byte[3];
-            in.mark(0);
             in.read(bomHeader);
-            if (!Arrays.equals(bomHeader, BOM_HEADER)) {
-                in.reset();
-            }
+            return Arrays.equals(bomHeader, BOM_HEADER);
         }
     }
 
@@ -271,8 +280,7 @@ public class DataParser
          * @return
          * @throws Exception
          */
-        private <T> T createBean(String[] values, Class<T> type, PropertyDescriptor[] props, int[] keyToProperty)
-                throws Exception {
+        private <T> T createBean(String[] values, Class<T> type, PropertyDescriptor[] props, int[] keyToProperty) throws Exception {
             T bean = type.newInstance();
 
             for (int i = 0; i < keyToProperty.length; i++) {
@@ -338,9 +346,56 @@ public class DataParser
                 return Short.valueOf(val);
             } else if (propType.equals(Byte.TYPE) || propType.equals(Byte.class)) {
                 return Byte.valueOf(val);
+            } else if (propType.equals(int[].class)) {
+                return toIntArray(val);
+            } else if (propType.equals(float[].class)) {
+                return toFloatArray(val);
             } else {
                 return val;
             }
+        }
+
+        private static final String EMPTY_VALUE = "null";
+        private static int[] EMPTY_INT_ARRAY = new int[0];
+
+        /**
+         * 特定配置类型，格式:a;b;c;d，其中a\b\c\d必须为int类型。该方法将特定格式的字符串解析为int数组
+         * 
+         * @param val
+         * @return
+         */
+        private int[] toIntArray(String val) {
+            if (val.equalsIgnoreCase(EMPTY_VALUE)) {
+                return EMPTY_INT_ARRAY;
+            }
+
+            String[] tmp = val.split(";");
+            int[] ret = new int[tmp.length];
+            for (int i = 0; i < ret.length; i++) {
+                ret[i] = Integer.parseInt(tmp[i]);
+            }
+            return ret;
+        }
+
+        private static float[] EMPTY_FLOAT_ARRAY = new float[0];
+
+        /**
+         * 特定配置类型，格式:a;b;c;d，其中a\b\c\d必须为float类型。该方法将特定格式的字符串解析为float数组
+         * 
+         * @param val
+         * @return
+         */
+        private float[] toFloatArray(String val) {
+            if (val.equalsIgnoreCase(EMPTY_VALUE)) {
+                return EMPTY_FLOAT_ARRAY;
+            }
+
+            String[] tmp = val.split(";");
+            float[] ret = new float[tmp.length];
+            for (int i = 0; i < ret.length; i++) {
+                ret[i] = Float.parseFloat(tmp[i]);
+            }
+            return ret;
         }
 
         /**
@@ -355,8 +410,7 @@ public class DataParser
          * @throws IllegalArgumentException
          * @throws IllegalAccessException
          */
-        private void callSetter(Object target, PropertyDescriptor prop, Object value)
-                throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        private void callSetter(Object target, PropertyDescriptor prop, Object value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
             Method setter = prop.getWriteMethod();
 
             if (setter == null) {
@@ -372,9 +426,7 @@ public class DataParser
             if (this.isCompatibleType(value, params[0])) {
                 setter.invoke(target, new Object[] { value });
             } else {
-                throw new IllegalArgumentException(
-                        "Cannot set " + prop.getName() + ": incompatible types, cannot convert "
-                                + value.getClass().getName() + " to " + params[0].getName());
+                throw new IllegalArgumentException("Cannot set " + prop.getName() + ": incompatible types, cannot convert " + value.getClass().getName() + " to " + params[0].getName());
                 // value cannot be null here because isCompatibleType allows
                 // null
             }
@@ -415,7 +467,7 @@ public class DataParser
     }
 
     /**
-     * 字段别名，当类字段名与数据文件字段名不一致时，用该注解加在类字段名上以关联类字段映射和数据文件字段
+     * 字段别名，当类字段名与数据文件字段名不一致时，用该注解加在类字段名上以将配置字段映射至类字段
      * 
      * @author lhl
      *
@@ -424,6 +476,11 @@ public class DataParser
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.RUNTIME)
     public @interface PropertyAlias {
-        String name();
+        /**
+         * 必须与配置字段名完全一致
+         * 
+         * @return
+         */
+        String value();
     }
 }
