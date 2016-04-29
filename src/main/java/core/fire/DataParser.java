@@ -8,9 +8,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -18,12 +15,20 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 将数据文件逐行解析为java bean
@@ -45,6 +50,7 @@ import java.util.Map;
  * 可实现自动解析，即将IntArray解析为int[]</li>
  * <li>FloatArray类型。若配置字段为FloatArray类型(形如1.1;2.2;3.3，特征是用分号分隔的数字)，
  * 则将对应的Java类字段定义为float[] 可实现自动解析，即将FloatArray解析为float[]</li>
+ * <li>枚举类型。支持Enum#valueOf(枚举常量名)</li>
  * </ul>
  * 以上特殊类型空值填"null"字符串
  * 
@@ -64,15 +70,8 @@ public class DataParser
      */
     public static <T> List<T> parse(String path, Class<T> type) throws RuntimeException {
         try {
-            // 1.将数据文件解析为map列表，一行数据代表一个map
-            List<Map<String, String>> maps = TxtParser.parseDataToMap(path);
-
-            // 2.预处理属性别名，准备解析器
-            Map<String, String> keyToPropertyOverrides = findOverrideProperties(type);
-            BeanProcessor beanProcessor = new BeanProcessor(keyToPropertyOverrides);
-
-            // 3.实施解析操作
-            return beanProcessor.toBeanList(maps, type);
+            List<Map<String, String>> maps = TxtParser.parse(path);
+            return BeanProcessor.of(type).toBeanList(maps, type);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -82,7 +81,7 @@ public class DataParser
      * 查找属性别名
      * 
      * @param type
-     * @return
+     * @return key=配置文件字段名，value=相应类字段名
      */
     private static <T> Map<String, String> findOverrideProperties(Class<T> type) {
         Map<String, String> ret = new HashMap<>();
@@ -96,68 +95,66 @@ public class DataParser
         return ret;
     }
 
-    static class TxtParser
+    // 将txt文件解析为k-v集合
+    public static class TxtParser
     {
+        // 文件最大200M
+        static int MAX_FILE_SIZE = 1024 * 1024 * 200;
         // 带BOM的UTF-8格式文件头部3字节
         static byte[] BOM_HEADER = { -17, -69, -65 };
 
         /**
-         * 将数据文件按行解析为包含map的list，一行数据解析为一个map，map的key为数据字段名，value为字段值
-         * <p>
-         * 数据文件仅支持UTF8编码
+         * 将数据文件解析为list，list元素为map，map的key为字段名，value为相应值 <br>
+         * 文件支持UTF8格式 <br>
+         * 解析规则：文件第一行为字段名定义，第二三行未定义，第四行开始是数据内容
          * 
-         * @param path 数据文件相对类路径
+         * @param path 文件相对类路径
          * @return
          * @throws IOException
+         * @throws URISyntaxException
          */
-        static List<Map<String, String>> parseDataToMap(String path) throws IOException {
-            try (InputStream in = getInputStream(path)) {
-                LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
-                // 第一行，表头
-                String tableHead = reader.readLine();
-                String[] fields = tableHead.split("\t");
-                // 跳过第二行(注释)
-                reader.readLine();
-                // 跳过第三行(字段类型)
-                reader.readLine();
+        public static List<Map<String, String>> parse(String file) throws IOException, URISyntaxException {
+            List<String> allLines = getAllLines(file);
+            String[] fields = allLines.get(0).split("\t");
+            List<String> content = allLines.subList(3, allLines.size());
 
-                List<Map<String, String>> ret = new ArrayList<>();
-                String line = null;
-                while ((line = reader.readLine()) != null) {
-                    if (line.isEmpty()) {
-                        continue;
-                    }
-                    ret.add(lineToMap(path, fields, line, reader.getLineNumber()));
-                }
-                return ret;
+            return content.stream().map(line -> {
+                return lineToMap(fields, line);
+            }).collect(Collectors.toList());
+        }
+
+        // 文件 -> 行
+        static List<String> getAllLines(String file) throws URISyntaxException, IOException {
+            URL url = DataParser.class.getClassLoader().getResource(file);
+            Path path = Paths.get(url.toURI());
+            if (Files.size(path) > MAX_FILE_SIZE) {
+                throw new RuntimeException("File \"" + file + "\" is too large");
+            }
+
+            try (Stream<String> lineStream = Files.lines(path)) {
+                return lineStream.map(line -> {
+                    return eraseUTF8BOMHeader(line);
+                }).collect(Collectors.toList());
             }
         }
 
-        // 预处理文件，去除BOM文件头
-        static InputStream getInputStream(String path) throws IOException {
-            InputStream in = DataParser.class.getClassLoader().getResourceAsStream(path);
-            if (in == null) {
-                throw new IllegalArgumentException("文件" + path + "不存在");
-            }
-
-            try {
-                if (!preprocessBOM(in)) {
-                    in.close();
-                    in = DataParser.class.getClassLoader().getResourceAsStream(path);
+        // 擦除UTF8 BOM头
+        static String eraseUTF8BOMHeader(String value) {
+            byte[] bytes = value.getBytes();
+            if (bytes.length >= 3) {
+                if (bytes[0] == BOM_HEADER[0] && bytes[1] == BOM_HEADER[1] && bytes[2] == BOM_HEADER[2]) {
+                    return new String(Arrays.copyOfRange(bytes, 3, bytes.length));
                 }
-            } catch (IOException e) {
-                in.close();
-                throw e;
             }
-
-            return in;
+            return value;
         }
 
-        static Map<String, String> lineToMap(String path, String[] keys, String line, int lineNo) {
+        // 将字符串转换为k-v映射
+        static Map<String, String> lineToMap(String[] keys, String line) {
             String[] values = line.split("\t");
 
             if (values.length != keys.length) {
-                String msg = "文件" + path + " key与value个数不一致, 行号: " + lineNo + ", key:" + Arrays.toString(keys) + ", value:" + Arrays.toString(values);
+                String msg = "key与value个数不一致, key:" + Arrays.toString(keys) + ", value:" + Arrays.toString(values);
                 throw new IllegalStateException(msg);
             }
 
@@ -167,76 +164,58 @@ public class DataParser
             }
             return ret;
         }
-
-        /**
-         * 预处理BOM，去除BOM文件头
-         * 
-         * @param in
-         * @throws IOException
-         */
-        static boolean preprocessBOM(InputStream in) throws IOException {
-            byte[] bomHeader = new byte[3];
-            in.read(bomHeader);
-            if (!Arrays.equals(bomHeader, BOM_HEADER)) {
-                return false;
-            }
-            return true;
-        }
     }
 
+    /**
+     * Bean处理器，使用反射将Map#字段名, 字段值#映射为一个java 类
+     * 
+     * @author lhl
+     *
+     *         2016年4月29日 下午5:14:08
+     */
     public static class BeanProcessor
     {
         private static final int PROPERTY_NOT_FOUND = -1;
 
         // key=属性别名，value=属性真名
-        private final Map<String, String> keyToPropertyOverrides;
+        private Map<String, String> keyToPropertyOverrides;
+        private Class<?> protoType;
 
-        public BeanProcessor() {
-            keyToPropertyOverrides = new HashMap<>();
-        }
-
-        public BeanProcessor(Map<String, String> keyToPropertyOverride) {
-            if (keyToPropertyOverride == null)
-                throw new NullPointerException("keyToPropertyOverride");
-
-            this.keyToPropertyOverrides = keyToPropertyOverride;
+        private BeanProcessor(Class<?> protoType) {
+            this.protoType = Objects.requireNonNull(protoType);
+            this.keyToPropertyOverrides = findOverrideProperties(this.protoType);
         }
 
         /**
-         * 利用{@code maps}生成类{@code type}的多个实例
+         * 生成BeanProcessor实例
          * 
-         * @param maps
-         * @param type
+         * @param protoType 目标类型
          * @return
-         * @throws Exception
          */
+        public static BeanProcessor of(Class<?> protoType) {
+            return new BeanProcessor(protoType);
+        }
+
         public <T> List<T> toBeanList(List<Map<String, String>> maps, Class<T> type) throws Exception {
-            List<T> ret = new ArrayList<>(maps.size());
             if (maps.isEmpty()) {
-                return ret;
+                return Collections.emptyList();
             }
 
-            for (Map<String, String> map : maps) {
-                ret.add(toBean(map, type));
-            }
-
-            return ret;
+            return maps.stream().map(x -> {
+                return toBean(x, type);
+            }).collect(Collectors.toList());
         }
 
-        /**
-         * 利用{@code properties}生成类{@code type}的实例
-         * 
-         * @param map
-         * @param type
-         * @return
-         * @throws Exception
-         */
-        public <T> T toBean(Map<String, String> properties, Class<T> type) throws Exception {
-            PropertyDescriptor[] props = propertyDescriptors(type);
-            String[] keys = properties.keySet().toArray(new String[properties.size()]);
-            int[] keyToProperty = mapKeysToProperties(keys, props);
-            String[] vals = properties.values().toArray(new String[properties.size()]);
-            return createBean(vals, type, props, keyToProperty);
+        public <T> T toBean(Map<String, String> properties, Class<T> type) {
+            try {
+                PropertyDescriptor[] props = propertyDescriptors(type);
+                String[] keys = properties.keySet().toArray(new String[properties.size()]);
+                int[] keyToProperty = mapKeysToProperties(keys, props);
+                String[] vals = properties.values().toArray(new String[properties.size()]);
+                return createBean(vals, type, props, keyToProperty);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
         /**
@@ -299,7 +278,6 @@ public class DataParser
                     continue;
 
                 PropertyDescriptor prop = props[keyToProperty[i]];
-
                 processField(bean, prop, values[i]);
             }
 
