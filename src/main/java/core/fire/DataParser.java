@@ -118,9 +118,7 @@ public class DataParser
             String[] fields = allLines.get(0).split("\t");
             List<String> content = allLines.subList(3, allLines.size());
 
-            return content.stream().map(line -> {
-                return lineToMap(fields, line);
-            }).collect(Collectors.toList());
+            return content.stream().map(line -> lineToMap(fields, line)).collect(Collectors.toList());
         }
 
         // 文件 -> 行
@@ -132,9 +130,7 @@ public class DataParser
             }
 
             try (Stream<String> lineStream = Files.lines(path)) {
-                return lineStream.map(line -> {
-                    return eraseUTF8BOMHeader(line);
-                }).collect(Collectors.toList());
+                return lineStream.map(line -> eraseUTF8BOMHeader(line)).collect(Collectors.toList());
             }
         }
 
@@ -201,9 +197,7 @@ public class DataParser
                 return Collections.emptyList();
             }
 
-            return maps.stream().map(x -> {
-                return toBean(x, type);
-            }).collect(Collectors.toList());
+            return maps.stream().map(x -> toBean(x, type)).collect(Collectors.toList());
         }
 
         public <T> T toBean(Map<String, String> properties, Class<T> type) {
@@ -399,8 +393,7 @@ public class DataParser
          * @throws IllegalArgumentException
          * @throws IllegalAccessException
          */
-        private void callSetter(Object target, PropertyDescriptor prop, Object value)
-                throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        private void callSetter(Object target, PropertyDescriptor prop, Object value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
             Method setter = prop.getWriteMethod();
 
             if (setter == null) {
@@ -416,8 +409,7 @@ public class DataParser
             if (this.isCompatibleType(value, params[0])) {
                 setter.invoke(target, new Object[] { value });
             } else {
-                throw new IllegalArgumentException(
-                        "Cannot set " + prop.getName() + ": incompatible types, cannot convert " + value.getClass().getName() + " to " + params[0].getName());
+                throw new IllegalArgumentException("Cannot set " + prop.getName() + ": incompatible types, cannot convert " + value.getClass().getName() + " to " + params[0].getName());
                 // value cannot be null here because isCompatibleType allows
                 // null
             }
