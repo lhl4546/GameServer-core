@@ -32,11 +32,11 @@ import core.fire.Callback;
  */
 public class BaseDao<T>
 {
-    private static final String SQL_INSERT_UPDATE = "INSERT INTO $table ($keys) VALUES ($values) "
-            + "ON DUPLICATE KEY UPDATE $assign";
+    private static final String SQL_INSERT_UPDATE = "INSERT INTO $table ($keys) VALUES ($values) " + "ON DUPLICATE KEY UPDATE $assign";
     private static final String SQL_DELETE_BY_PRIMARY_KEY = "DELETE FROM $table WHERE $primarykey=?";
     private static final String SQL_SELECT_BY_PRIMARY_KEY = "SELECT * FROM $table WHERE $primarykey=?";
     private static final String SQL_SELECT_BY_SECOND_KEY = "SELECT * FROM $table WHERE $secondkey=?";
+
     private static final BeanProcessor beanProcessor = new BeanProcessor();
 
     private String sql_insert_update; // 插入、更新SQL
@@ -337,7 +337,7 @@ public class BaseDao<T>
     }
 
     // JDBC asynchronous operation -----------------
-    // 提交异步任务
+    // 提交任务
     protected void addTask(Runnable task) {
         dbService.addTask(task);
     }

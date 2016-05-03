@@ -86,8 +86,8 @@ public class DBService implements Component
                 if (task != null) {
                     task.run();
                 }
-            } catch (Exception e) {
-                LOG.error("", e);
+            } catch (Throwable t) {
+                LOG.error("", t);
             }
         }
 
