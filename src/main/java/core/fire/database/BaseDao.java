@@ -61,11 +61,11 @@ public class BaseDao<T>
 
     @PostConstruct
     public void initialize() {
+        initializeTableField(type);
         initializeInsertUpdateSQL();
         initializeDeleteSQL();
         initializeSelectByPrimaryKeySQL();
         initializeSelectBySecondKeySQL();
-        initializeTableField(type);
     }
 
     // SQL generator ------------------------
