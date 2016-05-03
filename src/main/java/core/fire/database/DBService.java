@@ -93,12 +93,10 @@ public class DBService implements Component
 
         Runnable takeTask() {
             Runnable task = null;
-            while (task == null && !stop) {
-                try {
-                    task = taskQueue.take();
-                } catch (InterruptedException e) {
-                    // Ignore
-                }
+            try {
+                task = taskQueue.take();
+            } catch (InterruptedException e) {
+                // Ignore
             }
             return task;
         }
