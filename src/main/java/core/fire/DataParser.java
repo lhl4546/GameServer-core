@@ -77,24 +77,6 @@ public class DataParser
         }
     }
 
-    /**
-     * 查找属性别名
-     * 
-     * @param type
-     * @return key=配置文件字段名，value=相应类字段名
-     */
-    private static <T> Map<String, String> findOverrideProperties(Class<T> type) {
-        Map<String, String> ret = new HashMap<>();
-        Field[] fields = type.getDeclaredFields();
-        for (Field field : fields) {
-            PropertyAlias anno = field.getAnnotation(PropertyAlias.class);
-            if (anno != null) {
-                ret.put(anno.value(), field.getName());
-            }
-        }
-        return ret;
-    }
-
     // 将txt文件解析为k-v集合
     public static class TxtParser
     {
@@ -180,6 +162,24 @@ public class DataParser
         private BeanProcessor(Class<?> protoType) {
             this.protoType = Objects.requireNonNull(protoType);
             this.keyToPropertyOverrides = findOverrideProperties(this.protoType);
+        }
+
+        /**
+         * 查找属性别名
+         * 
+         * @param type
+         * @return key=配置文件字段名，value=相应类字段名
+         */
+        private static <T> Map<String, String> findOverrideProperties(Class<T> type) {
+            Map<String, String> ret = new HashMap<>();
+            Field[] fields = type.getDeclaredFields();
+            for (Field field : fields) {
+                PropertyAlias anno = field.getAnnotation(PropertyAlias.class);
+                if (anno != null) {
+                    ret.put(anno.value(), field.getName());
+                }
+            }
+            return ret;
         }
 
         /**
@@ -393,7 +393,8 @@ public class DataParser
          * @throws IllegalArgumentException
          * @throws IllegalAccessException
          */
-        private void callSetter(Object target, PropertyDescriptor prop, Object value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        private void callSetter(Object target, PropertyDescriptor prop, Object value)
+                throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
             Method setter = prop.getWriteMethod();
 
             if (setter == null) {
@@ -409,7 +410,8 @@ public class DataParser
             if (this.isCompatibleType(value, params[0])) {
                 setter.invoke(target, new Object[] { value });
             } else {
-                throw new IllegalArgumentException("Cannot set " + prop.getName() + ": incompatible types, cannot convert " + value.getClass().getName() + " to " + params[0].getName());
+                throw new IllegalArgumentException(
+                        "Cannot set " + prop.getName() + ": incompatible types, cannot convert " + value.getClass().getName() + " to " + params[0].getName());
                 // value cannot be null here because isCompatibleType allows
                 // null
             }
