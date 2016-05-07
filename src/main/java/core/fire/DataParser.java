@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -71,7 +70,7 @@ public class DataParser
     public static <T> List<T> parse(String path, Class<T> type) throws RuntimeException {
         try {
             List<Map<String, String>> maps = TxtParser.parse(path);
-            return BeanProcessor.of(type).toBeanList(maps, type);
+            return BeanProcessor.of(type).populate(maps, type);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -154,6 +153,10 @@ public class DataParser
     public static class BeanProcessor
     {
         private static final int PROPERTY_NOT_FOUND = -1;
+        private static final String EMPTY_VALUE1 = "null";
+        private static final String EMPTY_VALUE2 = "";
+        private static int[] EMPTY_INT_ARRAY = new int[0];
+        private static float[] EMPTY_FLOAT_ARRAY = new float[0];
 
         // key=属性别名，value=属性真名
         private Map<String, String> keyToPropertyOverrides;
@@ -192,15 +195,27 @@ public class DataParser
             return new BeanProcessor(protoType);
         }
 
-        public <T> List<T> toBeanList(List<Map<String, String>> maps, Class<T> type) throws Exception {
-            if (maps.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            return maps.stream().map(x -> toBean(x, type)).collect(Collectors.toList());
+        /**
+         * k-v数据转换成对象 批量
+         * 
+         * @param maps
+         * @param type
+         * @return
+         * @throws RuntimeException
+         */
+        public <T> List<T> populate(List<Map<String, String>> maps, Class<T> type) throws RuntimeException {
+            return maps.stream().map(x -> populate(x, type)).collect(Collectors.toList());
         }
 
-        public <T> T toBean(Map<String, String> properties, Class<T> type) {
+        /**
+         * k-v数据转换成对象
+         * 
+         * @param properties
+         * @param type
+         * @return
+         * @throws RuntimeException
+         */
+        public <T> T populate(Map<String, String> properties, Class<T> type) {
             try {
                 PropertyDescriptor[] props = propertyDescriptors(type);
                 String[] keys = properties.keySet().toArray(new String[properties.size()]);
@@ -272,7 +287,7 @@ public class DataParser
                     continue;
 
                 PropertyDescriptor prop = props[keyToProperty[i]];
-                processField(bean, prop, values[i]);
+                populateField(bean, prop, values[i]);
             }
 
             return bean;
@@ -285,22 +300,22 @@ public class DataParser
          * @param prop
          * @param strVal
          */
-        private <T> void processField(T bean, PropertyDescriptor prop, String strVal) {
+        private <T> void populateField(T bean, PropertyDescriptor prop, String strVal) {
             Class<?> propType = prop.getPropertyType();
-            Object value = null;
+            Object targetVal = null;
             if (propType != null) {
-                if (propType.isPrimitive() && (EMPTY_VALUE1.equals(strVal) || EMPTY_VALUE2.equals(strVal))) {
-                    return;
+                if (propType.isPrimitive() && (isEmpty(strVal))) {
+                    return; // 基础类型字段且被留空则不赋值(使用默认值)
                 }
 
-                value = processValue(strVal, propType);
+                targetVal = parseValueByType(strVal, propType);
             }
 
             try {
-                callSetter(bean, prop, value);
+                callSetter(bean, prop, targetVal);
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                String out = "无法将值[" + strVal + "]赋值到类[" + bean.getClass() + "]实例的[" + prop.getName() + "]字段，请检查类型是否匹配";
-                throw new IllegalStateException(out, e);
+                String message = "无法将值[" + strVal + "]赋值到类[" + bean.getClass() + "]实例的[" + prop.getName() + "]字段，字段类型[]" + propType + "，请检查类型是否匹配";
+                throw new IllegalStateException(message, e);
             }
         }
 
@@ -311,7 +326,7 @@ public class DataParser
          * @param propType
          * @return
          */
-        private Object processValue(String val, Class<?> propType) {
+        private Object parseValueByType(String val, Class<?> propType) {
             if (!propType.isPrimitive() && val == null) {
                 return null;
             }
@@ -341,9 +356,15 @@ public class DataParser
             }
         }
 
-        private static final String EMPTY_VALUE1 = "null";
-        private static final String EMPTY_VALUE2 = "";
-        private static int[] EMPTY_INT_ARRAY = new int[0];
+        /**
+         * 空值，允许填"null"或者留空以表示字段使用默认值
+         * 
+         * @param value
+         * @return
+         */
+        private boolean isEmpty(String value) {
+            return value == null || value.equals(EMPTY_VALUE1) || value.equals(EMPTY_VALUE2);
+        }
 
         /**
          * 特定配置类型，格式:a;b;c;d，其中a\b\c\d必须为int类型。该方法将特定格式的字符串解析为int数组
@@ -352,7 +373,7 @@ public class DataParser
          * @return
          */
         private int[] toIntArray(String val) {
-            if (val.equalsIgnoreCase(EMPTY_VALUE1) || val.equals(EMPTY_VALUE2)) {
+            if (isEmpty(val)) {
                 return EMPTY_INT_ARRAY;
             }
 
@@ -364,8 +385,6 @@ public class DataParser
             return ret;
         }
 
-        private static float[] EMPTY_FLOAT_ARRAY = new float[0];
-
         /**
          * 特定配置类型，格式:a;b;c;d，其中a\b\c\d必须为float类型。该方法将特定格式的字符串解析为float数组
          * 
@@ -373,7 +392,7 @@ public class DataParser
          * @return
          */
         private float[] toFloatArray(String val) {
-            if (val.equalsIgnoreCase(EMPTY_VALUE1) || val.equals(EMPTY_VALUE2)) {
+            if (isEmpty(val)) {
                 return EMPTY_FLOAT_ARRAY;
             }
 
@@ -397,12 +416,10 @@ public class DataParser
          * @throws IllegalArgumentException
          * @throws IllegalAccessException
          */
-        private void callSetter(Object target, PropertyDescriptor prop, Object value)
-                throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        private void callSetter(Object target, PropertyDescriptor prop, Object value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
             Method setter = prop.getWriteMethod();
-
             if (setter == null) {
-                return;
+                throw new RuntimeException("找不到类" + target.getClass() + "字段" + prop.getName() + "的set方法，请检查类定义是否符合Bean规范");
             }
 
             Class<?>[] params = setter.getParameterTypes();
@@ -410,14 +427,10 @@ public class DataParser
                 value = Enum.valueOf(params[0].asSubclass(Enum.class), (String) value);
             }
 
-            // Don't call setter if the value object isn't the right type
-            if (this.isCompatibleType(value, params[0])) {
+            if (isCompatibleType(value, params[0])) {
                 setter.invoke(target, new Object[] { value });
             } else {
-                throw new IllegalArgumentException(
-                        "Cannot set " + prop.getName() + ": incompatible types, cannot convert " + value.getClass().getName() + " to " + params[0].getName());
-                // value cannot be null here because isCompatibleType allows
-                // null
+                throw new IllegalArgumentException("Cannot set " + prop.getName() + ": incompatible types, cannot convert " + value.getClass().getName() + " to " + params[0].getName());
             }
         }
 
