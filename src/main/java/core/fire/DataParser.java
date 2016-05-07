@@ -129,7 +129,7 @@ public class DataParser
 
         // 将字符串转换为k-v映射
         static Map<String, String> lineToMap(String[] keys, String line) {
-            String[] values = line.split("\t");
+            String[] values = line.split("\t", -1);
 
             if (values.length != keys.length) {
                 String msg = "key与value个数不一致, key:" + Arrays.toString(keys) + ", value:" + Arrays.toString(values);
@@ -287,9 +287,12 @@ public class DataParser
          */
         private <T> void processField(T bean, PropertyDescriptor prop, String strVal) {
             Class<?> propType = prop.getPropertyType();
-
             Object value = null;
             if (propType != null) {
+                if (propType.isPrimitive() && (EMPTY_VALUE1.equals(strVal) || EMPTY_VALUE2.equals(strVal))) {
+                    return;
+                }
+
                 value = processValue(strVal, propType);
             }
 
@@ -311,15 +314,6 @@ public class DataParser
         private Object processValue(String val, Class<?> propType) {
             if (!propType.isPrimitive() && val == null) {
                 return null;
-            }
-
-            // 如果字段留空(val = "")，则赋类型默认值
-            if (propType.isPrimitive() && (EMPTY_VALUE1.equals(val) || EMPTY_VALUE2.equals(val))) {
-                if (propType == Boolean.TYPE) {
-                    return false;
-                } else {
-                    return 0;
-                }
             }
 
             if (propType.equals(String.class)) {
