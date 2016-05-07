@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  * <li>数据文件第一行为字段名，第二、三行自定义，第四行开始是数据</li>
  * <li>列之间用tab键分隔</li>
  * <li>类字段命名应与数据文件字段名一致，若不一致应使用别名注解{@link PropertyAlias}将类字段映射到数据文件字段</li>
- * <li>数据文件配置的字段值不允许空着</li>
+ * <li>字段允许填"null"或者留空</li>
  * <li>数据文件支持UTF-8编码</li>
  * <li>自动跳过空行</li>
  * </ul>
@@ -313,6 +313,15 @@ public class DataParser
                 return null;
             }
 
+            // 如果字段留空(val = "")，则赋类型默认值
+            if (propType.isPrimitive() && (EMPTY_VALUE1.equals(val) || EMPTY_VALUE2.equals(val))) {
+                if (propType == Boolean.TYPE) {
+                    return false;
+                } else {
+                    return 0;
+                }
+            }
+
             if (propType.equals(String.class)) {
                 return val;
             } else if (propType.equals(Integer.TYPE) || propType.equals(Integer.class)) {
@@ -338,7 +347,8 @@ public class DataParser
             }
         }
 
-        private static final String EMPTY_VALUE = "null";
+        private static final String EMPTY_VALUE1 = "null";
+        private static final String EMPTY_VALUE2 = "";
         private static int[] EMPTY_INT_ARRAY = new int[0];
 
         /**
@@ -348,7 +358,7 @@ public class DataParser
          * @return
          */
         private int[] toIntArray(String val) {
-            if (val.equalsIgnoreCase(EMPTY_VALUE)) {
+            if (val.equalsIgnoreCase(EMPTY_VALUE1) || val.equals(EMPTY_VALUE2)) {
                 return EMPTY_INT_ARRAY;
             }
 
@@ -369,7 +379,7 @@ public class DataParser
          * @return
          */
         private float[] toFloatArray(String val) {
-            if (val.equalsIgnoreCase(EMPTY_VALUE)) {
+            if (val.equalsIgnoreCase(EMPTY_VALUE1) || val.equals(EMPTY_VALUE2)) {
                 return EMPTY_FLOAT_ARRAY;
             }
 
