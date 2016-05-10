@@ -12,6 +12,8 @@ import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,255 +32,217 @@ import core.fire.Callback;
  *
  *         2016年2月24日 上午10:00:50
  */
-public class BaseDao<T>
+public class BaseDao<T> implements DataAccess<T>
 {
-    private static final String SQL_INSERT_UPDATE = "INSERT INTO $table ($keys) VALUES ($values) " + "ON DUPLICATE KEY UPDATE $assign";
+    private static final Logger LOG = LoggerFactory.getLogger(BaseDao.class);
+
+    // SQL模版
+    private static final String SQL_UPDATE = "UPDATE $table SET $assignment WHERE $primarykey=?";
+    private static final String SQL_INSERT = "INSERT INTO $table ($keys) VALUES ($values)";
     private static final String SQL_DELETE_BY_PRIMARY_KEY = "DELETE FROM $table WHERE $primarykey=?";
     private static final String SQL_SELECT_BY_PRIMARY_KEY = "SELECT * FROM $table WHERE $primarykey=?";
     private static final String SQL_SELECT_BY_SECOND_KEY = "SELECT * FROM $table WHERE $secondkey=?";
 
-    private static final BeanProcessor beanProcessor = new BeanProcessor();
-
-    private String sql_insert_update; // 插入、更新SQL
+    private String sql_update; // 更新SQL
+    private String sql_insert; // 插入SQL
     private String sql_delete; // 删除SQL
     private String sql_select_by_primary_key; // 主键查询SQL
     private String sql_select_by_second_key; // 索引查询SQL
+
     private Field[] tableField; // 数据库表字段
     private Field primaryKey; // 主键
     private Class<?> type; // 实体类型
+    private String tableName; // 数据库表名
+
+    private final BeanProcessor beanProcessor = new BeanProcessor();
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private DBService dbService;
 
-    /**
-     * @param type 实体类类型
-     */
     protected BaseDao(Class<?> type) {
         this.type = Objects.requireNonNull(type);
     }
 
     @PostConstruct
     public void initialize() {
-        initializeTableField(type);
-        initializeInsertUpdateSQL();
-        initializeDeleteSQL();
-        initializeSelectByPrimaryKeySQL();
-        initializeSelectBySecondKeySQL();
+        initializeTableName();
+        initializeColumns();
+        initializeSQL();
     }
 
-    // SQL generator ------------------------
-    protected void initializeInsertUpdateSQL() {
-        this.sql_insert_update = getInsertUpdateSQL0(type);
-    }
+    // 获取实体类对应的数据表名，由Table注解获得
+    private void initializeTableName() {
+        Table tableAnnotation = type.getAnnotation(Table.class);
+        if (tableAnnotation == null)
+            throw new IllegalStateException("Table annotation not found for type " + type.getName());
 
-    // 生成插入\更改操作SQL
-    private String getInsertUpdateSQL0(Class<?> type) {
-        Field[] fields = getTableField(type);
-        String table = getTableName(type);
-        String keys = getKeys(fields);
-        String values = getValues(fields);
-        String assign = getAssign(fields);
-        String sql = SQL_INSERT_UPDATE.replace("$table", table);
-        sql = sql.replace("$keys", keys);
-        sql = sql.replace("$values", values);
-        sql = sql.replace("$assign", assign);
-        return sql;
-    }
-
-    // 获取插入\更改操作SQL
-    protected String getInsertUpdateSQL() {
-        return sql_insert_update;
-    }
-
-    // 获取数据库表字段
-    private Field[] getTableField(Class<?> c) {
-        return tableField;
-    }
-
-    protected void initializeTableField(Class<?> c) {
-        this.tableField = generateTableField(c);
+        tableName = tableAnnotation.value();
     }
 
     // 生成数据库表字段
-    private Field[] generateTableField(Class<?> c) {
+    private void initializeColumns() {
+        Class<?> c = this.type;
         Field[] fields = c.getDeclaredFields();
         List<Field> list = new ArrayList<>();
         for (Field field : fields) {
-            if (isTableField(field)) {
-                ensureAccessable(field);
+            if (field.isAnnotationPresent(TableField.class)) {
+                field.setAccessible(true);
                 list.add(field);
             }
+            if (field.isAnnotationPresent(PrimaryKey.class)) {
+                this.primaryKey = field;
+            }
         }
-        return list.toArray(new Field[list.size()]);
+        this.tableField = list.toArray(new Field[list.size()]);
+        LOG.debug("Found table {}, column is {}", tableName, list);
     }
 
-    // 判断一个字段是否是数据库表字段
-    private boolean isTableField(Field field) {
-        return field.isAnnotationPresent(TableField.class);
+    protected void initializeSQL() {
+        initUpdateSQL();
+        initInsertSQL();
+        initDeleteSQL();
+        initSelectSQL1();
+        initSelectSQL2();
     }
 
-    // 确保非public字段都能直接访问
-    private void ensureAccessable(Field field) {
-        field.setAccessible(true);
+    private void initUpdateSQL() {
+        String assign = getAssignWithoutPrimaryKey();
+        String sql = SQL_UPDATE.replace("$table", tableName);
+        sql = sql.replace("$assignment", assign);
+        sql = sql.replace("$primarykey", this.primaryKey.getName());
+        this.sql_update = sql;
+        LOG.debug("Found table {}, update sql is {}", tableName, sql_update);
+    }
+
+    // 获取SQL赋值格式(key1=?,key2=?...)
+    private String getAssignWithoutPrimaryKey() {
+        StringBuilder sb = new StringBuilder();
+        for (Field field : tableField) {
+            if (field != primaryKey)
+                sb.append(field.getName()).append("=?,");
+        }
+        return sb.substring(0, sb.length() - 1);
+    }
+
+    // 生成插入\更改操作SQL
+    private void initInsertSQL() {
+        String keys = getKeys();
+        String values = getValues();
+        String sql = SQL_INSERT.replace("$table", tableName);
+        sql = sql.replace("$keys", keys);
+        sql = sql.replace("$values", values);
+        this.sql_insert = sql;
+        LOG.debug("Found table {}, insert sql is {}", tableName, sql_insert);
     }
 
     // 获取插入KEY
-    private String getKeys(Field[] fields) {
+    private String getKeys() {
         StringBuilder sb = new StringBuilder();
-        for (Field field : fields) {
+        for (Field field : tableField) {
             sb.append(field.getName()).append(",");
         }
         return sb.substring(0, sb.length() - 1);
     }
 
     // 获取插入参数格式(?,?...)
-    private String getValues(Field[] fields) {
+    private String getValues() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < fields.length; i++) {
+        for (int i = 0; i < tableField.length; i++) {
             sb.append("?,");
         }
         return sb.substring(0, sb.length() - 1);
     }
 
-    // 获取SQL赋值格式(key1=?,key2=?...)
-    private String getAssign(Field[] fields) {
-        StringBuilder sb = new StringBuilder();
-        for (Field field : fields) {
-            sb.append(field.getName()).append("=?,");
-        }
-        return sb.substring(0, sb.length() - 1);
-    }
-
-    protected void initializeDeleteSQL() {
-        this.sql_delete = getDeleteSQL0(type);
-    }
-
     // 生成删除操作SQL
-    private String getDeleteSQL0(Class<?> type) {
-        String table = getTableName(type);
-        String primaryKey = getPrimaryKey(type);
-        String sql = SQL_DELETE_BY_PRIMARY_KEY.replace("$table", table);
+    private void initDeleteSQL() {
+        String primaryKey = this.primaryKey.getName();
+        String sql = SQL_DELETE_BY_PRIMARY_KEY.replace("$table", tableName);
         sql = sql.replace("$primarykey", primaryKey);
-        return sql;
-    }
-
-    // 获取删除操作SQL
-    protected String getDeleteSQL() {
-        return sql_delete;
-    }
-
-    // 获取主键查询操作SQL
-    protected String getSelectByPrimaryKeySQL() {
-        return sql_select_by_primary_key;
-    }
-
-    protected void initializeSelectByPrimaryKeySQL() {
-        sql_select_by_primary_key = getSelectByPrimaryKeySQL0(type);
+        this.sql_delete = sql;
+        LOG.debug("Found table {}, delete sql is {}", tableName, sql_delete);
     }
 
     // 生成主键查询操作SQL
-    private String getSelectByPrimaryKeySQL0(Class<?> type) {
-        String table = getTableName(type);
-        String primaryKey = getPrimaryKey(type);
-        String sql = SQL_SELECT_BY_PRIMARY_KEY.replace("$table", table);
+    private void initSelectSQL1() {
+        String primaryKey = this.primaryKey.getName();
+        String sql = SQL_SELECT_BY_PRIMARY_KEY.replace("$table", tableName);
         sql = sql.replace("$primarykey", primaryKey);
-        return sql;
-    }
-
-    // 获取其他关键字查询操作SQL
-    protected String getSelectBySecondKeySQL() {
-        return sql_select_by_second_key;
-    }
-
-    protected void initializeSelectBySecondKeySQL() {
-        this.sql_select_by_second_key = getSelectBySecondKeySQL0(type);
+        this.sql_select_by_primary_key = sql;
+        LOG.debug("Found table {}, select by primarykey sql is {}", tableName, sql_select_by_primary_key);
     }
 
     // 生成其他关键字查询操作SQL
-    private String getSelectBySecondKeySQL0(Class<?> type) {
-        String table = getTableName(type);
-        String secondKey = getSecondKey(type);
-        String sql = SQL_SELECT_BY_SECOND_KEY.replace("$table", table);
-        if (secondKey != null) {
-            sql = sql.replace("$secondkey", secondKey);
+    private void initSelectSQL2() {
+        String secondKey = getSecondKey();
+        if (secondKey == null) {
+            return;
         }
-        return sql;
+
+        String sql = SQL_SELECT_BY_SECOND_KEY.replace("$table", tableName);
+        sql = sql.replace("$secondkey", secondKey);
+        this.sql_select_by_second_key = sql;
+        LOG.debug("Found table {}, select by secondarykey sql is {}", tableName, sql_select_by_second_key);
     }
 
-    // 获取插入\更改操作参数
-    protected Object[] getInsertUpdateParam(Object obj) {
-        Field[] fields = getTableField(this.type);
-        Object[] param = getInsertParam(obj, fields);
-        Object[] result = new Object[param.length * 2];
-        System.arraycopy(param, 0, result, 0, param.length);
-        System.arraycopy(param, 0, result, param.length, param.length);
+    // 获取实体类第二主键(索引)，由SecondKey获得
+    private String getSecondKey() {
+        String secondKey = null;
+        for (Field field : tableField) {
+            if (field.isAnnotationPresent(SecondKey.class)) {
+                secondKey = field.getName();
+                break;
+            }
+        }
+        return secondKey;
+    }
+
+    // 生成SQL参数
+    protected Object[] getUpdateParam(Object obj) {
+        Field[] fields = this.tableField;
+        Object[] values = getFieldValue(obj);
+        Object[] result = new Object[values.length];
+        Object primaryKeyValue = null;
+        int j = 0;
+        for (int i = 0; i < values.length; i++) {
+            if (fields[i] == primaryKey) {
+                primaryKeyValue = values[i];
+                continue;
+            }
+            result[j++] = values[i];
+        }
+        result[j] = primaryKeyValue;
         return result;
     }
 
+    // 获取插入\更改操作参数
+    protected Object[] getInsertParam(Object obj) {
+        return getFieldValue(obj);
+    }
+
     // 生成插入SQL参数列表
-    private Object[] getInsertParam(Object obj, Field[] fields) {
-        Object[] vals = new Object[fields.length];
-        for (int i = 0; i < vals.length; i++) {
-            Field field = fields[i];
-            try {
-                vals[i] = field.get(obj);
-            } catch (IllegalAccessException | IllegalArgumentException e) {
-                e.printStackTrace();
+    private Object[] getFieldValue(Object obj) {
+        Field[] fields = this.tableField;
+        Object[] values = new Object[fields.length];
+        try {
+            for (int i = 0; i < values.length; i++) {
+                Field field = fields[i];
+                values[i] = field.get(obj);
             }
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+            throw new RuntimeException(e);
         }
-        return vals;
+        return values;
     }
 
     // 获取删除操作参数
     protected Object getDeleteParam(Object obj) {
-        Field primaryKey = this.primaryKey;
         try {
             return primaryKey.get(obj);
         } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    // 获取实体类对应的数据表名，由Table注解获得
-    private String getTableName(Class<?> type) {
-        Table tableAnnotation = type.getAnnotation(Table.class);
-        if (tableAnnotation == null)
-            throw new IllegalStateException("Table annotation not found for type " + type.getName());
-
-        return tableAnnotation.value();
-    }
-
-    // 获取实体类主键，由PrimaryKey注解获得
-    private String getPrimaryKey(Class<?> type) {
-        if (this.primaryKey != null)
-            return this.primaryKey.getName();
-
-        Field[] fields = type.getDeclaredFields();
-        for (Field field : fields) {
-            PrimaryKey keyAnnotation = field.getAnnotation(PrimaryKey.class);
-            if (keyAnnotation != null) {
-                field.setAccessible(true);
-                this.primaryKey = field;
-                return field.getName();
-            }
-        }
-
-        throw new IllegalStateException("Primary key not found for type " + type.getName());
-    }
-
-    // 获取实体类第二主键(索引)，由SecondKey获得
-    private String getSecondKey(Class<?> type) {
-        String secondKey = null;
-        Field[] fields = type.getDeclaredFields();
-        for (Field field : fields) {
-            SecondKey keyAnnotation = field.getAnnotation(SecondKey.class);
-            if (keyAnnotation != null) {
-                secondKey = field.getName();
-            }
-        }
-        return secondKey;
     }
 
     // Bean processor -----------------------------------------------------
@@ -310,30 +274,37 @@ public class BaseDao<T>
         return jdbcTemplate;
     }
 
-    // 有则更新，无则插入
-    public void insertOrUpdate(T t) {
-        String sql = getInsertUpdateSQL();
-        Object[] param = getInsertUpdateParam(t);
+    @Override
+    public void add(T t) {
+        String sql = sql_insert;
+        Object param = getInsertParam(t);
         getJdbcTemplate().update(sql, param);
     }
 
-    // 删除
+    @Override
     public void delete(T t) {
-        String sql = getDeleteSQL();
+        String sql = sql_delete;
         Object param = getDeleteParam(t);
         getJdbcTemplate().update(sql, param);
     }
 
-    // 根据主键查询，需要实体类有标注了@PrimaryKey注解的字段
-    public T selectByPrimarykey(Object primaryKey) {
-        String sql = getSelectByPrimaryKeySQL();
+    @Override
+    public void update(T t) {
+        String sql = sql_update;
+        Object[] param = getUpdateParam(t);
+        getJdbcTemplate().update(sql, param);
+    }
+
+    @Override
+    public T get(int primaryKey) {
+        String sql = sql_select_by_primary_key;
         return getJdbcTemplate().query(sql, new Object[] { primaryKey }, beanExtrator);
     }
 
-    // 根据索引查询，需要实体类有标注了@SecondKey注解的字段
-    public List<T> selectBySecondKey(Object secondKey) {
-        String sql = getSelectBySecondKeySQL();
-        return getJdbcTemplate().query(sql, new Object[] { secondKey }, beanListExtractor);
+    @Override
+    public List<T> getBySecondaryKey(int secondaryKey) {
+        String sql = sql_select_by_second_key;
+        return getJdbcTemplate().query(sql, new Object[] { secondaryKey }, beanListExtractor);
     }
 
     // JDBC asynchronous operation -----------------
@@ -342,23 +313,25 @@ public class BaseDao<T>
         dbService.addTask(task);
     }
 
-    // 异步插入|更新
-    public void asyncInsertOrUpdate(T t) {
-        Runnable task = () -> insertOrUpdate(t);
+    public void asyncAdd(T t) {
+        Runnable task = () -> add(t);
         addTask(task);
     }
 
-    // 异步删除
     public void asyncDelete(T t) {
         Runnable task = () -> delete(t);
         addTask(task);
     }
 
-    // 异步查询(根据主键)，需要提供一个回调接口以执行后续操作
-    public void asyncSelectByPrimaryKey(Object primaryKey, Callback cb) {
+    public void asyncUpdate(T t) {
+        Runnable task = () -> update(t);
+        addTask(task);
+    }
+
+    public void asyncGet(int primaryKey, Callback cb) {
         Runnable task = () -> {
             try {
-                T t = selectByPrimarykey(primaryKey);
+                T t = get(primaryKey);
                 cb.onSuccess(t);
             } catch (Exception e) {
                 cb.onError(e);
@@ -367,12 +340,11 @@ public class BaseDao<T>
         addTask(task);
     }
 
-    // 异步查询(根据索引)，需要提供一个回调接口以执行后续操作
-    public void asyncSelectBySecondKey(Object secondKey, Callback cb) {
+    public void asyncGetBySecondaryKey(int secondaryKey, Callback cb) {
         Runnable task = () -> {
             try {
-                List<T> list = selectBySecondKey(secondKey);
-                cb.onSuccess(list);
+                List<T> t = getBySecondaryKey(secondaryKey);
+                cb.onSuccess(t);
             } catch (Exception e) {
                 cb.onError(e);
             }
