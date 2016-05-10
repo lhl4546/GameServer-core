@@ -32,7 +32,7 @@ import core.fire.Callback;
  *
  *         2016年2月24日 上午10:00:50
  */
-public class BaseDao<T> implements DataAccess<T>
+public class BaseDao<T> implements AsyncDataAccess<T>
 {
     private static final Logger LOG = LoggerFactory.getLogger(BaseDao.class);
 
@@ -43,6 +43,7 @@ public class BaseDao<T> implements DataAccess<T>
     private static final String SQL_SELECT_BY_PRIMARY_KEY = "SELECT * FROM $table WHERE $primarykey=?";
     private static final String SQL_SELECT_BY_SECOND_KEY = "SELECT * FROM $table WHERE $secondkey=?";
 
+    // SQL实例
     private String sql_update; // 更新SQL
     private String sql_insert; // 插入SQL
     private String sql_delete; // 删除SQL
@@ -51,6 +52,7 @@ public class BaseDao<T> implements DataAccess<T>
 
     private Field[] tableField; // 数据库表字段
     private Field primaryKey; // 主键
+    private Field secondaryKey; // 索引
     private Class<?> type; // 实体类型
     private String tableName; // 数据库表名
 
@@ -61,7 +63,7 @@ public class BaseDao<T> implements DataAccess<T>
     @Autowired
     private DBService dbService;
 
-    protected BaseDao(Class<?> type) {
+    protected BaseDao(Class<T> type) {
         this.type = Objects.requireNonNull(type);
     }
 
@@ -72,16 +74,21 @@ public class BaseDao<T> implements DataAccess<T>
         initializeSQL();
     }
 
-    // 获取实体类对应的数据表名，由Table注解获得
+    /**
+     * 初始化数据库表名
+     */
     private void initializeTableName() {
         Table tableAnnotation = type.getAnnotation(Table.class);
         if (tableAnnotation == null)
             throw new IllegalStateException("Table annotation not found for type " + type.getName());
 
         tableName = tableAnnotation.value();
+        LOG.debug("Found table {}", tableName);
     }
 
-    // 生成数据库表字段
+    /**
+     * 初始化数据库表字段对应的类字段
+     */
     private void initializeColumns() {
         Class<?> c = this.type;
         Field[] fields = c.getDeclaredFields();
@@ -94,12 +101,18 @@ public class BaseDao<T> implements DataAccess<T>
             if (field.isAnnotationPresent(PrimaryKey.class)) {
                 this.primaryKey = field;
             }
+            if (field.isAnnotationPresent(SecondKey.class)) {
+                this.secondaryKey = field;
+            }
         }
         this.tableField = list.toArray(new Field[list.size()]);
         LOG.debug("Found table {}, column is {}", tableName, list);
     }
 
-    protected void initializeSQL() {
+    /**
+     * 初始化SQL实例
+     */
+    private void initializeSQL() {
         initUpdateSQL();
         initInsertSQL();
         initDeleteSQL();
@@ -126,7 +139,6 @@ public class BaseDao<T> implements DataAccess<T>
         return sb.substring(0, sb.length() - 1);
     }
 
-    // 生成插入\更改操作SQL
     private void initInsertSQL() {
         String keys = getKeys();
         String values = getValues();
@@ -157,45 +169,30 @@ public class BaseDao<T> implements DataAccess<T>
 
     // 生成删除操作SQL
     private void initDeleteSQL() {
-        String primaryKey = this.primaryKey.getName();
         String sql = SQL_DELETE_BY_PRIMARY_KEY.replace("$table", tableName);
-        sql = sql.replace("$primarykey", primaryKey);
+        sql = sql.replace("$primarykey", this.primaryKey.getName());
         this.sql_delete = sql;
         LOG.debug("Found table {}, delete sql is {}", tableName, sql_delete);
     }
 
     // 生成主键查询操作SQL
     private void initSelectSQL1() {
-        String primaryKey = this.primaryKey.getName();
         String sql = SQL_SELECT_BY_PRIMARY_KEY.replace("$table", tableName);
-        sql = sql.replace("$primarykey", primaryKey);
+        sql = sql.replace("$primarykey", this.primaryKey.getName());
         this.sql_select_by_primary_key = sql;
         LOG.debug("Found table {}, select by primarykey sql is {}", tableName, sql_select_by_primary_key);
     }
 
     // 生成其他关键字查询操作SQL
     private void initSelectSQL2() {
-        String secondKey = getSecondKey();
-        if (secondKey == null) {
+        if (secondaryKey == null) {
             return;
         }
 
         String sql = SQL_SELECT_BY_SECOND_KEY.replace("$table", tableName);
-        sql = sql.replace("$secondkey", secondKey);
+        sql = sql.replace("$secondkey", this.secondaryKey.getName());
         this.sql_select_by_second_key = sql;
         LOG.debug("Found table {}, select by secondarykey sql is {}", tableName, sql_select_by_second_key);
-    }
-
-    // 获取实体类第二主键(索引)，由SecondKey获得
-    private String getSecondKey() {
-        String secondKey = null;
-        for (Field field : tableField) {
-            if (field.isAnnotationPresent(SecondKey.class)) {
-                secondKey = field.getName();
-                break;
-            }
-        }
-        return secondKey;
     }
 
     // 生成SQL参数
@@ -236,15 +233,6 @@ public class BaseDao<T> implements DataAccess<T>
         return values;
     }
 
-    // 获取删除操作参数
-    protected Object getDeleteParam(Object obj) {
-        try {
-            return primaryKey.get(obj);
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     // Bean processor -----------------------------------------------------
     protected ResultSetExtractor<T> beanExtrator = new ResultSetExtractor<T>() {
         @Override
@@ -276,79 +264,140 @@ public class BaseDao<T> implements DataAccess<T>
 
     @Override
     public void add(T t) {
+        Timer timer = Timer.start();
         String sql = sql_insert;
         Object param = getInsertParam(t);
         getJdbcTemplate().update(sql, param);
+        timer.end();
+        LOG.debug("Table {}.add, time = {} ns", tableName, timer.time());
     }
 
     @Override
-    public void delete(T t) {
+    public void delete(int primaryKey) {
+        Timer timer = Timer.start();
         String sql = sql_delete;
-        Object param = getDeleteParam(t);
-        getJdbcTemplate().update(sql, param);
+        getJdbcTemplate().update(sql, new Object[] { primaryKey });
+        timer.end();
+        LOG.debug("Table {}.delete, time = {} ns", tableName, timer.time());
     }
 
     @Override
     public void update(T t) {
+        Timer timer = Timer.start();
         String sql = sql_update;
         Object[] param = getUpdateParam(t);
         getJdbcTemplate().update(sql, param);
+        timer.end();
+        LOG.debug("Table {}.update, time = {} ns", tableName, timer.time());
     }
 
     @Override
     public T get(int primaryKey) {
+        Timer timer = Timer.start();
         String sql = sql_select_by_primary_key;
-        return getJdbcTemplate().query(sql, new Object[] { primaryKey }, beanExtrator);
+        try {
+            return getJdbcTemplate().query(sql, new Object[] { primaryKey }, beanExtrator);
+        } finally {
+            timer.end();
+            LOG.debug("Table {}.get, time = {} ns", tableName, timer.time());
+        }
     }
 
     @Override
-    public List<T> getBySecondaryKey(int secondaryKey) {
+    public List<T> getBySecondaryKey(Object secondaryKey) {
+        Timer timer = Timer.start();
         String sql = sql_select_by_second_key;
-        return getJdbcTemplate().query(sql, new Object[] { secondaryKey }, beanListExtractor);
+        try {
+            return getJdbcTemplate().query(sql, new Object[] { secondaryKey }, beanListExtractor);
+        } finally {
+            timer.end();
+            LOG.debug("Table {}.getBySecondaryKey, time = {} ns", tableName, timer.time());
+        }
     }
 
-    // JDBC asynchronous operation -----------------
-    // 提交任务
-    protected void addTask(Runnable task) {
-        dbService.addTask(task);
-    }
-
+    @Override
     public void asyncAdd(T t) {
         Runnable task = () -> add(t);
         addTask(task);
     }
 
-    public void asyncDelete(T t) {
-        Runnable task = () -> delete(t);
+    @Override
+    public void asyncDelete(int primaryKey) {
+        Runnable task = () -> delete(primaryKey);
         addTask(task);
     }
 
+    @Override
     public void asyncUpdate(T t) {
         Runnable task = () -> update(t);
         addTask(task);
     }
 
+    @Override
     public void asyncGet(int primaryKey, Callback cb) {
         Runnable task = () -> {
             try {
                 T t = get(primaryKey);
                 cb.onSuccess(t);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 cb.onError(e);
             }
         };
         addTask(task);
     }
 
+    @Override
     public void asyncGetBySecondaryKey(int secondaryKey, Callback cb) {
         Runnable task = () -> {
             try {
                 List<T> t = getBySecondaryKey(secondaryKey);
                 cb.onSuccess(t);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 cb.onError(e);
             }
         };
         addTask(task);
+    }
+
+    // 提交任务
+    protected void addTask(Runnable task) {
+        dbService.addTask(task);
+    }
+
+    /**
+     * 时间测试，用法:
+     * 
+     * <pre>
+     * Timer timer = Timer.start();
+     * your code here;
+     * timer.end();
+     * System.out.println("time = " + timer.time());
+     * </pre>
+     * 
+     * @author lhl
+     *
+     *         2016年5月10日 下午3:47:31
+     */
+    static class Timer
+    {
+        long startTime;
+        long endTime;
+
+        private Timer() {
+        }
+
+        static Timer start() {
+            Timer timer = new Timer();
+            timer.startTime = System.nanoTime();
+            return timer;
+        }
+
+        void end() {
+            endTime = System.nanoTime();
+        }
+
+        long time() {
+            return endTime - startTime;
+        }
     }
 }

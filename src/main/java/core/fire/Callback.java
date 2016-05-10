@@ -29,7 +29,7 @@ public interface Callback
     /**
      * 什么也不做的空回调
      */
-    Callback EMPTY = new Callback() {
+    Callback NO_OP = new Callback() {
         @Override
         public void onSuccess(Object param) {
         }

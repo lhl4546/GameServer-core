@@ -3,13 +3,15 @@
  */
 package core.fire.database;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
+import core.fire.NamedThreadFactory;
+import core.fire.util.BaseUtil;
 
 /**
  * @author lhl
@@ -20,85 +22,27 @@ import core.fire.Component;
 public class DBService implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
-    private WorkerThread worker;
+    private ExecutorService worker;
 
     public DBService() {
-        this.worker = new WorkerThread();
+        worker = Executors.newSingleThreadExecutor(new NamedThreadFactory("DBService"));
     }
 
     public void addTask(Runnable task) {
-        worker.addTask(task);
+        worker.submit(task);
     }
 
     @Override
     public void start() throws Exception {
-        startWorkerThread();
         LOG.debug("DBService start");
     }
 
-    private void startWorkerThread() {
-        worker.startThread();
-    }
-
+    /**
+     * 该组件应当在DispatcherHandler停止后再停止，否则可能导致数据丢失
+     */
     @Override
     public void stop() throws Exception {
-        worker.stop = true;
-        worker.thread.interrupt();
-        worker.thread.join();
+        BaseUtil.shutdownThreadPool(worker, 10 * 1000);
         LOG.debug("DBService stop");
-    }
-
-    static class WorkerThread implements Runnable
-    {
-        BlockingQueue<Runnable> taskQueue;
-        Thread thread;
-        boolean stop;
-
-        WorkerThread() {
-            this.taskQueue = new LinkedBlockingQueue<>();
-            this.thread = new Thread(this, "DB");
-        }
-
-        void startThread() {
-            thread.start();
-        }
-
-        void addTask(Runnable task) {
-            this.taskQueue.add(task);
-        }
-
-        @Override
-        public void run() {
-            while (!stop) {
-                doTask();
-            }
-
-            LOG.debug("Receive stop command, remaining task count {}", taskQueue.size());
-            while (!taskQueue.isEmpty()) {
-                doTask();
-            }
-            LOG.debug("Finish all remaining task");
-        }
-
-        void doTask() {
-            try {
-                Runnable task = takeTask();
-                if (task != null) {
-                    task.run();
-                }
-            } catch (Throwable t) {
-                LOG.error("", t);
-            }
-        }
-
-        Runnable takeTask() {
-            Runnable task = null;
-            try {
-                task = taskQueue.take();
-            } catch (InterruptedException e) {
-                // Ignore
-            }
-            return task;
-        }
     }
 }
