@@ -11,27 +11,27 @@ import core.fire.net.tcp.NettyServer;
 public class AppStart implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(AppStart.class);
-    private AnnotationConfigApplicationContext app;
+    public static final AppStart INSTANCE = new AppStart();
+    private AnnotationConfigApplicationContext appCtx;
 
-    static {
-        Config.parse("app.properties");
+    private AppStart() {
     }
 
     public static void main(String[] args) {
-        AppStart demo = new AppStart();
-        demo.start();
+        INSTANCE.start();
     }
 
     @Override
     public void start() {
         try {
-            app = new AnnotationConfigApplicationContext(AppConfigExample.class);
+            Config.parse("app.properties");
+            appCtx = new AnnotationConfigApplicationContext(AppConfigExample.class);
             registerShutdownHook();
-            app.getBean(Timer.class).start();
-            app.getBean(DBService.class).start();
-            app.getBean(DispatcherHandler.class).start();
-            app.getBean(NettyServer.class).start();
-            app.registerShutdownHook();
+            appCtx.getBean(Timer.class).start();
+            appCtx.getBean(DBService.class).start();
+            appCtx.getBean(DispatcherHandler.class).start();
+            appCtx.getBean(NettyServer.class).start();
+            appCtx.registerShutdownHook();
         } catch (Exception e) {
             LOG.error("Server start failed", e);
             stop();
@@ -47,10 +47,10 @@ public class AppStart implements Component
     @Override
     public void stop() {
         try {
-            app.getBean(NettyServer.class).stop();
-            app.getBean(DispatcherHandler.class).stop();
-            app.getBean(Timer.class).stop();
-            app.getBean(DBService.class).stop();
+            appCtx.getBean(NettyServer.class).stop();
+            appCtx.getBean(DispatcherHandler.class).stop();
+            appCtx.getBean(Timer.class).stop();
+            appCtx.getBean(DBService.class).stop();
         } catch (Exception e) {
             LOG.error("Server stop failed", e);
         }
