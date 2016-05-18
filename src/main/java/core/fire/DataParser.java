@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -117,7 +118,7 @@ public class DataParser
 
         // 擦除UTF8 BOM头
         static String eraseUTF8BOMHeader(String value) {
-            byte[] bytes = value.getBytes();
+            byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
             if (bytes.length >= 3) {
                 if (bytes[0] == BOM_HEADER[0] && bytes[1] == BOM_HEADER[1] && bytes[2] == BOM_HEADER[2]) {
                     return new String(Arrays.copyOfRange(bytes, 3, bytes.length));
