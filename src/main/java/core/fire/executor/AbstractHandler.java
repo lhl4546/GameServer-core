@@ -3,12 +3,10 @@
  */
 package core.fire.executor;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.google.protobuf.GeneratedMessage;
 
+import core.fire.AppStart;
 import core.fire.net.tcp.Packet;
-import io.netty.channel.Channel;
 
 /**
  * {@code T}为具体请求类型
@@ -19,13 +17,10 @@ import io.netty.channel.Channel;
  */
 public abstract class AbstractHandler<T extends GeneratedMessage> implements Handler
 {
-    @Autowired
-    private DispatcherHandler dispatcher;
+    private static final DispatcherHandler dispatcher;
 
-    @Override
-    public final void handle(Channel channel, Packet packet) {
-        T message = parseParam(packet);
-        handle(channel, message);
+    static {
+        dispatcher = AppStart.INSTANCE.appCtx.getBean(DispatcherHandler.class);
     }
 
     /**
@@ -35,7 +30,7 @@ public abstract class AbstractHandler<T extends GeneratedMessage> implements Han
      * @return 若字节数组为空则返回null
      */
     @SuppressWarnings("unchecked")
-    private T parseParam(Packet packet) {
+    protected T parseParam(Packet packet) {
         if (packet.body != null) {
             GeneratedMessage paramType = dispatcher.getParamType(packet.code);
             return (T) packet.toProto(paramType);
@@ -43,9 +38,17 @@ public abstract class AbstractHandler<T extends GeneratedMessage> implements Han
         return null;
     }
 
-    /**
-     * @param channel
-     * @param message 当请求{@code Packet}的包体{@code body}为空时该参数为空
-     */
-    protected abstract void handle(Channel channel, T message);
+    // ADVICE
+    //
+    // @Override
+    // public final void handle(Channel channel, Packet packet) {
+    // T message = parseParam(packet);
+    // handle(channel, message);
+    // }
+    //
+    // /**
+    // * @param channel
+    // * @param message 当请求{@code Packet}的包体{@code body}为空时该参数为空
+    // */
+    // protected abstract void handle(Channel channel, T message);
 }

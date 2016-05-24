@@ -12,7 +12,7 @@ public class AppStart implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(AppStart.class);
     public static final AppStart INSTANCE = new AppStart();
-    private AnnotationConfigApplicationContext appCtx;
+    public AnnotationConfigApplicationContext appCtx;
 
     private AppStart() {
     }
@@ -32,6 +32,7 @@ public class AppStart implements Component
             appCtx.getBean(DispatcherHandler.class).start();
             appCtx.getBean(NettyServer.class).start();
             appCtx.registerShutdownHook();
+            appCtx.publishEvent(new ComponentsReadyEvent(appCtx));
         } catch (Exception e) {
             LOG.error("Server start failed", e);
             stop();
