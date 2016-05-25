@@ -5,6 +5,7 @@ package core.fire.executor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -217,7 +218,11 @@ public final class DispatcherHandler implements Handler, Component
 
         @Override
         public String toString() {
-            return "RunnableTask: [channel=" + channel + ", packet=" + packet + ", data=" + packet.body + "]";
+            return "RunnableTask: [channel=" + channel + ", packet=" + packet + "]";
+        }
+        
+        public String dumpPacketBody() {
+            return Arrays.toString(packet.body);
         }
     }
 }
