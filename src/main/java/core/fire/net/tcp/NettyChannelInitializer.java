@@ -3,6 +3,9 @@
  */
 package core.fire.net.tcp;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOutboundHandler;
@@ -13,10 +16,13 @@ import io.netty.channel.ChannelPipeline;
  *
  *         2016年1月30日 上午9:29:24
  */
+@Component
 public class NettyChannelInitializer extends ChannelInitializer<Channel>
 {
-    private NettyHandler netHandler = new NettyHandler();
-    private ChannelOutboundHandler encoder = new PlainProtocolEncoder();
+    @Autowired
+    private NettyHandler netHandler;
+    @Autowired
+    private ChannelOutboundHandler encoder;
 
     @Override
     protected void initChannel(Channel ch) throws Exception {

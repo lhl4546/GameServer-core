@@ -5,6 +5,7 @@ package core.fire.net.tcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import core.fire.Component;
 import core.fire.Config;
@@ -12,7 +13,6 @@ import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -35,6 +35,9 @@ public class NettyServer implements Component
     private Channel serverSocket;
     private int port;
 
+    @Autowired
+    private NettyChannelInitializer channelInitializer;
+
     /**
      * @param dispatcher 消息派发处理器
      */
@@ -48,16 +51,11 @@ public class NettyServer implements Component
 
     @Override
     public void start() throws Exception {
-        bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(getInitializer())
-                .option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_LINGER, 0)
+        bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(channelInitializer).option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_LINGER, 0)
                 .childOption(ChannelOption.TCP_NODELAY, true);
         ChannelFuture future = bootstrap.bind(port);
         serverSocket = future.sync().channel();
         LOG.debug("NettyServer start listen on port {}", port);
-    }
-
-    private ChannelInitializer<Channel> getInitializer() {
-        return new NettyChannelInitializer();
     }
 
     @Override

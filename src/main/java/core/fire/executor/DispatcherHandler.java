@@ -58,8 +58,7 @@ public final class DispatcherHandler implements Handler, Component
      */
     private void initLogicThreadPool() {
         int threads = Runtime.getRuntime().availableProcessors();
-        ExecutorService executor = Executors.newFixedThreadPool(threads, new NamedThreadFactory("LOGIC"));
-        this.executor = executor;
+        this.executor = Executors.newFixedThreadPool(threads, new NamedThreadFactory("LOGIC"));
     }
 
     /**
@@ -105,8 +104,7 @@ public final class DispatcherHandler implements Handler, Component
     private void addHandler(short code, Handler handler) throws IllegalStateException {
         Handler oldHandler = handlerMap.put(Short.valueOf(code), handler);
         if (oldHandler != null) {
-            throw new IllegalStateException("Duplicate handler for code " + code + ", old: "
-                    + oldHandler.getClass().getName() + ", new: " + handler.getClass().getName());
+            throw new IllegalStateException("Duplicate handler for code " + code + ", old: " + oldHandler.getClass().getName() + ", new: " + handler.getClass().getName());
         }
     }
 
@@ -177,8 +175,8 @@ public final class DispatcherHandler implements Handler, Component
     }
 
     // 每个生成的PB协议类都应该有一个getDefaultInstance静态方法
-    private GeneratedMessage instantiate(Class<? extends GeneratedMessage> type) throws NoSuchMethodException,
-            SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    private GeneratedMessage instantiate(Class<? extends GeneratedMessage> type)
+            throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         Method method = type.getMethod("getDefaultInstance");
         return (GeneratedMessage) method.invoke(type);
     }
@@ -220,7 +218,7 @@ public final class DispatcherHandler implements Handler, Component
         public String toString() {
             return "RunnableTask: [channel=" + channel + ", packet=" + packet + "]";
         }
-        
+
         public String dumpPacketBody() {
             return Arrays.toString(packet.body);
         }
