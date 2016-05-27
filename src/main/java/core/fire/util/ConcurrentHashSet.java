@@ -12,6 +12,11 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * 基于{@link java.util.concurrent.ConcurrentHashMap}的HashSet实现
+ * <p>
+ * 考虑如下实现:
+ * <p>
+ * Set set = Collections.newSetFromMap(new ConcurrentHashMap<>());
+ * </p>
  * 
  * @author lhl
  *

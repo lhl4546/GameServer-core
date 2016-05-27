@@ -74,8 +74,7 @@ final public class ClassUtil
                 ZipEntry entry = null;
                 while ((entry = zip.getNextEntry()) != null) {
                     if (entry.getName().endsWith(".class")) {
-                        String className = entry.getName().replaceAll("[$].*", "").replaceAll("[.]class", "")
-                                .replace('/', '.');
+                        String className = entry.getName().replaceAll("[$].*", "").replaceAll("[.]class", "").replace('/', '.');
                         if (className.startsWith(packageName)) {
                             classes.add(className);
                         }
