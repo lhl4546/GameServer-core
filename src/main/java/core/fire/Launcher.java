@@ -9,9 +9,9 @@ import core.fire.executor.DispatcherHandler;
 import core.fire.net.tcp.NettyServer;
 
 /**
- * 应用启动器，可继承此类，建议子类实现单例模式以提供对Spring应用上下文的访问。 注意： 1. 需要开启对包"core.fire"的自动扫描 2.
- * 需要提供CoreConfiguration(或其子类)Spring bean 3. 如需使用数据库访问，需要提供JDBCTemplate Spring
- * bean
+ * 应用启动器，可继承此类，建议子类实现单例模式以提供对Spring应用上下文的访问。 注意： 1. 具体工程必须import
+ * LauncherConfig类， 2. 需要提供CoreConfiguration(或其子类)Spring bean 3.
+ * 如需使用数据库访问，需要提供JDBCTemplate Spring bean
  * 
  * @author lhl
  *
