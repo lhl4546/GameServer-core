@@ -10,11 +10,13 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 
 import core.fire.Component;
-import core.fire.Config;
-import core.fire.util.BaseUtil;
+import core.fire.CoreConfiguration;
 import core.fire.util.ClassUtil;
+import core.fire.util.Util;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -30,14 +32,15 @@ import io.netty.handler.codec.http.HttpVersion;
  *
  *         2016年3月28日 下午4:38:37
  */
+@org.springframework.stereotype.Component
+@Scope("prototype")
 public class HttpServerDispatcher implements Component, HttpHandler
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpServerDispatcher.class);
-    private Map<String, HttpHandler> handlerMap;
+    private Map<String, HttpHandler> handlerMap = new HashMap<>();
 
-    public HttpServerDispatcher() {
-        handlerMap = new HashMap<>();
-    }
+    @Autowired
+    private CoreConfiguration config;
 
     @Override
     public void handle(Channel channel, Map<String, List<String>> parameter) {
@@ -61,8 +64,7 @@ public class HttpServerDispatcher implements Component, HttpHandler
      * @param status HTTP状态码
      */
     private void sendError(Channel channel, String message, HttpResponseStatus status) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status,
-                Unpooled.copiedBuffer(message.getBytes()));
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(message.getBytes()));
         response.headers().set(CONTENT_TYPE, "text/plain");
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
         channel.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
@@ -70,7 +72,7 @@ public class HttpServerDispatcher implements Component, HttpHandler
 
     @Override
     public void start() throws Exception {
-        loadHandler(Config.getString("HANDLER_SCAN_PACKAGES"));
+        loadHandler(config.getHttpHandlerScanPackages());
         LOG.debug("HttpServerDispatcher start");
     }
 
@@ -81,13 +83,13 @@ public class HttpServerDispatcher implements Component, HttpHandler
      * @throws Exception
      */
     private void loadHandler(String searchPackage) throws Exception {
-        if (BaseUtil.isNullOrEmpty(searchPackage)) {
+        if (Util.isNullOrEmpty(searchPackage)) {
             return;
         }
 
-        String[] packages = BaseUtil.split(searchPackage.trim(), ",");
+        String[] packages = Util.split(searchPackage.trim(), ",");
         for (String onePackage : packages) {
-            if (!BaseUtil.isNullOrEmpty(onePackage)) {
+            if (!Util.isNullOrEmpty(onePackage)) {
                 LOG.debug("Load handler from package {}", onePackage);
                 List<Class<?>> classList = ClassUtil.getClasses(onePackage);
                 for (Class<?> handler : classList) {
@@ -104,8 +106,7 @@ public class HttpServerDispatcher implements Component, HttpHandler
     private void addHandler(String uri, HttpHandler handler) {
         HttpHandler oldHandler = handlerMap.put(uri, handler);
         if (oldHandler != null) {
-            throw new IllegalStateException("Duplicate handler for uri " + uri + ", old: "
-                    + oldHandler.getClass().getName() + ", new: " + handler.getClass().getName());
+            throw new IllegalStateException("Duplicate handler for uri " + uri + ", old: " + oldHandler.getClass().getName() + ", new: " + handler.getClass().getName());
         }
     }
 

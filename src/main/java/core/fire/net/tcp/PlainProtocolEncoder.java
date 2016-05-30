@@ -2,6 +2,7 @@ package core.fire.net.tcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import io.netty.buffer.ByteBuf;
@@ -19,6 +20,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
  */
 @Sharable
 @Component
+@Scope("prototype")
 public class PlainProtocolEncoder extends MessageToByteEncoder<Packet>
 {
     private static final Logger LOG = LoggerFactory.getLogger(PlainProtocolEncoder.class);

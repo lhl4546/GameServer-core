@@ -6,23 +6,24 @@ package core.fire.executor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 
 import com.google.protobuf.GeneratedMessage;
 
 import core.fire.Component;
-import core.fire.Config;
+import core.fire.CoreConfiguration;
 import core.fire.NamedThreadFactory;
 import core.fire.net.tcp.Packet;
-import core.fire.util.BaseUtil;
 import core.fire.util.ClassUtil;
+import core.fire.util.IntHashMap;
+import core.fire.util.Util;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 
@@ -34,22 +35,24 @@ import io.netty.util.AttributeKey;
  *         2016年1月30日 下午3:49:52
  */
 @org.springframework.stereotype.Component
+@Scope("prototype")
 public final class DispatcherHandler implements Handler, Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(DispatcherHandler.class);
     // <指令，处理器>
-    private Map<Short, Handler> handlerMap;
+    private IntHashMap<Handler> handlerMap = new IntHashMap<>();
     // <指令，请求参数类型>
-    private Map<Short, GeneratedMessage> requestParamType;
+    private IntHashMap<GeneratedMessage> requestParamType = new IntHashMap<>();
     // 指令处理线程池
     private ExecutorService executor;
     // 消息队列将被作为附件设置到channel上
     // 绑定了消息队列的session的事件将被提交到消息队列执行，否则统一提交到公用消息队列
     public static final AttributeKey<Sequence> SEQUENCE_KEY = AttributeKey.valueOf("SEQUENCE_KEY");
 
+    @Autowired
+    private CoreConfiguration config;
+
     public DispatcherHandler() {
-        handlerMap = new HashMap<>();
-        requestParamType = new HashMap<>();
         initLogicThreadPool();
     }
 
@@ -66,7 +69,7 @@ public final class DispatcherHandler implements Handler, Component
      */
     @Override
     public void handle(Channel channel, Packet packet) {
-        Handler handler = handlerMap.get(Short.valueOf(packet.code));
+        Handler handler = handlerMap.get(packet.code);
         if (handler == null) {
             LOG.warn("No handler found for code {}, session will be closed", packet.code);
             channel.close();
@@ -102,7 +105,7 @@ public final class DispatcherHandler implements Handler, Component
      * @throws IllegalStateException
      */
     private void addHandler(short code, Handler handler) throws IllegalStateException {
-        Handler oldHandler = handlerMap.put(Short.valueOf(code), handler);
+        Handler oldHandler = handlerMap.put(code, handler);
         if (oldHandler != null) {
             throw new IllegalStateException("Duplicate handler for code " + code + ", old: " + oldHandler.getClass().getName() + ", new: " + handler.getClass().getName());
         }
@@ -115,7 +118,7 @@ public final class DispatcherHandler implements Handler, Component
      * @param param
      */
     private void addParamType(short code, GeneratedMessage param) {
-        requestParamType.put(Short.valueOf(code), param);
+        requestParamType.put(code, param);
     }
 
     /**
@@ -125,7 +128,7 @@ public final class DispatcherHandler implements Handler, Component
      * @return
      */
     public GeneratedMessage getParamType(short code) {
-        return requestParamType.get(Short.valueOf(code));
+        return requestParamType.get(code);
     }
 
     /**
@@ -139,7 +142,7 @@ public final class DispatcherHandler implements Handler, Component
 
     @Override
     public void start() throws Exception {
-        loadHandler(Config.getString("HANDLER_SCAN_PACKAGES"));
+        loadHandler(config.getTcpHandlerScanPackages());
         LOG.debug("DispatcherHandler start");
     }
 
@@ -150,13 +153,13 @@ public final class DispatcherHandler implements Handler, Component
      * @throws Exception
      */
     private void loadHandler(String searchPackage) throws Exception {
-        if (BaseUtil.isNullOrEmpty(searchPackage)) {
+        if (Util.isNullOrEmpty(searchPackage)) {
             return;
         }
 
-        String[] packages = BaseUtil.split(searchPackage.trim(), ",");
+        String[] packages = Util.split(searchPackage.trim(), ",");
         for (String onePackage : packages) {
-            if (!BaseUtil.isNullOrEmpty(onePackage)) {
+            if (!Util.isNullOrEmpty(onePackage)) {
                 LOG.debug("Load handler from package {}", onePackage);
                 List<Class<?>> classList = ClassUtil.getClasses(onePackage);
                 for (Class<?> handler : classList) {
@@ -183,7 +186,7 @@ public final class DispatcherHandler implements Handler, Component
 
     @Override
     public void stop() {
-        BaseUtil.shutdownThreadPool(executor, 5 * 1000);
+        Util.shutdownThreadPool(executor, 5 * 1000);
         LOG.debug("DispatcherHandler stop");
     }
 

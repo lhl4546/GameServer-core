@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
 import core.fire.NamedThreadFactory;
-import core.fire.util.BaseUtil;
+import core.fire.util.Util;
 
 /**
  * @author lhl
@@ -42,7 +42,7 @@ public class DBService implements Component
      */
     @Override
     public void stop() throws Exception {
-        BaseUtil.shutdownThreadPool(worker, 10 * 1000);
+        Util.shutdownThreadPool(worker, 10 * 1000);
         LOG.debug("DBService stop");
     }
 }

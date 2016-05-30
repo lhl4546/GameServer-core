@@ -10,7 +10,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import core.fire.util.BaseUtil;
+import core.fire.util.Util;
 import core.fire.util.TimeUtil;
 
 /**
@@ -99,6 +99,6 @@ public class Timer implements Component
 
     @Override
     public void stop() throws Exception {
-        BaseUtil.shutdownThreadPool(executor, 0);
+        Util.shutdownThreadPool(executor, 0);
     }
 }

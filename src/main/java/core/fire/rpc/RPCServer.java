@@ -16,17 +16,21 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 
 import core.fire.Component;
-import core.fire.Config;
-import core.fire.util.BaseUtil;
+import core.fire.CoreConfiguration;
 import core.fire.util.ClassUtil;
+import core.fire.util.Util;
 
 /**
  * @author lhl
  *
  *         2016年2月19日 下午3:24:04
  */
+@org.springframework.stereotype.Component
+@Scope("prototype")
 public class RPCServer implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(RPCServer.class);
@@ -35,6 +39,9 @@ public class RPCServer implements Component
     private TProtocolFactory protocol;
     private AbstractNonblockingServer server;
 
+    @Autowired
+    private CoreConfiguration config;
+
     public RPCServer() {
         multiplex = new TMultiplexedProcessor();
         protocol = new TCompactProtocol.Factory();
@@ -42,7 +49,8 @@ public class RPCServer implements Component
 
     @Override
     public void start() throws Exception {
-        transport = new TNonblockingServerSocket(Config.getInt("RPC_PORT"));
+        int port = config.getRpcPort();
+        transport = new TNonblockingServerSocket(port);
         TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(transport);
         args.processor(multiplex).protocolFactory(protocol).selectorThreads(2).workerThreads(1);
         server = new TThreadedSelectorServer(args);
@@ -50,7 +58,7 @@ public class RPCServer implements Component
         // serve是个阻塞方法，启动线程调用避免阻塞后续操作
         new Thread(() -> server.serve(), "RPC_START").start();
 
-        LOG.debug("RPC server start listen on port {}", Config.getInt("RPC_PORT"));
+        LOG.debug("RPC server start listen on port {}", port);
     }
 
     public void addProcessor(String serviceName, TProcessor processor) {
@@ -58,8 +66,8 @@ public class RPCServer implements Component
     }
 
     public void loadProcessor() throws Exception {
-        String searchPackages = Config.getString("RPC_HANDLER_SCAN_PACKAGES");
-        String[] packageArray = BaseUtil.split(searchPackages.trim(), ",");
+        String searchPackages = config.getRpcHandlerScanPackages();
+        String[] packageArray = Util.split(searchPackages.trim(), ",");
         for (String onePackage : packageArray) {
             loadProcessor0(onePackage);
         }
@@ -80,8 +88,7 @@ public class RPCServer implements Component
                 Class<? extends TProcessor> processorType = annotation.processor();
                 Class<?> iface = annotation.iface();
                 if (!iface.isAssignableFrom(handler)) {
-                    throw new IllegalStateException(
-                            "Handler " + handler.getName() + " is not subclass of iface " + iface.getName());
+                    throw new IllegalStateException("Handler " + handler.getName() + " is not subclass of iface " + iface.getName());
                 }
                 Constructor<? extends TProcessor> constructor = processorType.getConstructor(iface);
                 Object handlerinstance = handler.newInstance();

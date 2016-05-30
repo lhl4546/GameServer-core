@@ -14,9 +14,9 @@ import java.util.concurrent.TimeUnit;
  * @author Administrator
  *
  */
-final public class BaseUtil
+final public class Util
 {
-    private BaseUtil() {
+    private Util() {
     }
 
     /**
