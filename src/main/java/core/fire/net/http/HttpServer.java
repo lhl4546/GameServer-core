@@ -3,7 +3,6 @@ package core.fire.net.http;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 
 import core.fire.Component;
 import core.fire.CoreConfiguration;
@@ -23,7 +22,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  *         2016年3月28日 下午3:48:06
  */
 @org.springframework.stereotype.Component
-@Scope("prototype")
 public class HttpServer implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpServer.class);

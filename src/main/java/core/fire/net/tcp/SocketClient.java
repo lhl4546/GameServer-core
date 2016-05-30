@@ -5,12 +5,11 @@ package core.fire.net.tcp;
 
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -31,8 +30,7 @@ public class SocketClient
     private String host;
     private int port;
 
-    @Autowired
-    private NettyChannelInitializer initializer;
+    private ChannelInitializer<Channel> initializer;
 
     public SocketClient(String host, int port) {
         this.host = host;
@@ -45,6 +43,10 @@ public class SocketClient
     public void init() {
         multiplexer = new NioEventLoopGroup(1, new NamedThreadFactory("client"));
         bootstrap.group(multiplexer).channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true).handler(initializer);
+    }
+
+    public void setChannelInitializer(ChannelInitializer<Channel> initializer) {
+        this.initializer = initializer;
     }
 
     /**

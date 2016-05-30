@@ -13,7 +13,6 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 
 import com.google.protobuf.GeneratedMessage;
 
@@ -35,7 +34,6 @@ import io.netty.util.AttributeKey;
  *         2016年1月30日 下午3:49:52
  */
 @org.springframework.stereotype.Component
-@Scope("prototype")
 public final class DispatcherHandler implements Handler, Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(DispatcherHandler.class);
@@ -175,6 +173,8 @@ public final class DispatcherHandler implements Handler, Component
                 }
             }
         }
+
+        LOG.debug("{} handler has been loaded", handlerMap.size());
     }
 
     // 每个生成的PB协议类都应该有一个getDefaultInstance静态方法

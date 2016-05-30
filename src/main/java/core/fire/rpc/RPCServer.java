@@ -17,7 +17,6 @@ import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 
 import core.fire.Component;
 import core.fire.CoreConfiguration;
@@ -30,7 +29,6 @@ import core.fire.util.Util;
  *         2016年2月19日 下午3:24:04
  */
 @org.springframework.stereotype.Component
-@Scope("prototype")
 public class RPCServer implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(RPCServer.class);

@@ -6,7 +6,6 @@ package core.fire.net.tcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 
 import core.fire.Component;
 import core.fire.CoreConfiguration;
@@ -27,7 +26,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  *         2016年1月29日 下午6:16:21
  */
 @org.springframework.stereotype.Component
-@Scope("prototype")
 public class NettyServer implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(NettyServer.class);

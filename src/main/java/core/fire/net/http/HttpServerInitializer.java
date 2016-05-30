@@ -16,7 +16,6 @@
 package core.fire.net.http;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import io.netty.channel.ChannelInitializer;
@@ -25,7 +24,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 
 @Component
-@Scope("prototype")
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel>
 {
     @Autowired

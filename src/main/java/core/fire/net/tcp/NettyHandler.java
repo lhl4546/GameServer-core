@@ -6,7 +6,6 @@ package core.fire.net.tcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import core.fire.executor.DispatcherHandler;
@@ -23,7 +22,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
  */
 @Sharable
 @Component
-@Scope("prototype")
 public class NettyHandler extends SimpleChannelInboundHandler<Packet>
 {
     private static final Logger LOG = LoggerFactory.getLogger(NettyHandler.class);

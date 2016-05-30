@@ -4,7 +4,6 @@
 package core.fire.net.tcp;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import io.netty.channel.Channel;
@@ -17,7 +16,6 @@ import io.netty.channel.ChannelPipeline;
  *         2016年1月30日 上午9:29:24
  */
 @Component
-@Scope("prototype")
 public class NettyChannelInitializer extends ChannelInitializer<Channel>
 {
     @Autowired

@@ -11,7 +11,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 
 import core.fire.Component;
 import core.fire.CoreConfiguration;
@@ -33,7 +32,6 @@ import io.netty.handler.codec.http.HttpVersion;
  *         2016年3月28日 下午4:38:37
  */
 @org.springframework.stereotype.Component
-@Scope("prototype")
 public class HttpServerDispatcher implements Component, HttpHandler
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpServerDispatcher.class);
