@@ -3,8 +3,12 @@
  */
 package core.fire.net.tcp;
 
+import java.util.Arrays;
+
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.GeneratedMessage.Builder;
+
+import core.fire.Dumpable;
 
 /**
  * 网络协议结构<br>
@@ -17,7 +21,7 @@ import com.google.protobuf.GeneratedMessage.Builder;
  * @author Administrator
  *
  */
-public class Packet
+public class Packet implements Dumpable
 {
     public static final short HEAD_SIZE = 6;
     public static final short FLAG = 9527;
@@ -61,6 +65,11 @@ public class Packet
         }
         packet.length += HEAD_SIZE;
         return packet;
+    }
+
+    @Override
+    public String errorDump() {
+        return "Packet: [code = " + code + ", length = " + length + ", body = " + Arrays.toString(body) + "]";
     }
 
     @Override

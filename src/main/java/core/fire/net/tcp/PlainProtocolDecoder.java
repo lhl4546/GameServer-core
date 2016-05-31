@@ -51,6 +51,6 @@ public class PlainProtocolDecoder extends ByteToMessageDecoder
 
         out.add(packet);
 
-        LOG.debug("RECV: {} -> {}, {}", ctx.channel().remoteAddress(), ctx.channel().localAddress(), packet);
+        LOG.debug("RECV {}, {}", ctx.channel().remoteAddress(), packet);
     }
 }

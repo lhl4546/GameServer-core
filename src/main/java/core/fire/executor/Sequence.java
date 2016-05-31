@@ -35,11 +35,11 @@ public final class Sequence
      * @param r
      */
     public final void addTask(Runnable r) {
-        Runnable task = wrapTask(r);
+        Runnable task = new TaskWrapper(r);
         synchronized (queue) {
             queue.offer(task);
             if (queue.size() == 1) {
-                executor.submit(task);
+                executor.execute(task);
             }
         }
     }
@@ -53,7 +53,7 @@ public final class Sequence
         synchronized (queue) {
             queue.poll();
             if (!queue.isEmpty()) {
-                executor.submit(queue.peek());
+                executor.execute(queue.peek());
             }
         }
     }
@@ -69,19 +69,9 @@ public final class Sequence
         }
     }
 
-    /**
-     * 封装任务，以达到驱动队列自动执行的目的
-     * 
-     * @param task
-     * @return
-     */
-    private Runnable wrapTask(Runnable task) {
-        return new TaskWrapper(task);
-    }
-
-    private class TaskWrapper implements Runnable
+    class TaskWrapper implements Runnable
     {
-        private Runnable task;
+        Runnable task;
 
         TaskWrapper(Runnable task) {
             this.task = task;

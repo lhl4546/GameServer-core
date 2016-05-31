@@ -32,6 +32,6 @@ public class PlainProtocolEncoder extends MessageToByteEncoder<Packet>
             out.writeBytes(msg.body);
         }
 
-        LOG.debug("SEND: {} -> {}, {}", ctx.channel().localAddress(), ctx.channel().remoteAddress(), msg);
+        LOG.debug("SEND {}, {}", ctx.channel().remoteAddress(), msg);
     }
 }
