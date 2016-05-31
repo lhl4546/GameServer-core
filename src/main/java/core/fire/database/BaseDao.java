@@ -13,7 +13,6 @@ import java.util.Objects;
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,10 +31,8 @@ import core.fire.Callback;
  *
  *         2016年2月24日 上午10:00:50
  */
-public class BaseDao<T> implements AsyncDataAccess<T>
+public abstract class BaseDao<T> implements AsyncDataAccess<T>
 {
-    private static final Logger LOG = LoggerFactory.getLogger(BaseDao.class);
-
     // SQL模版
     private static final String SQL_UPDATE = "UPDATE $table SET $assignment WHERE $primarykey=?";
     private static final String SQL_INSERT = "INSERT INTO $table ($keys) VALUES ($values)";
@@ -83,7 +80,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
             throw new IllegalStateException("Table annotation not found for type " + type.getName());
 
         tableName = tableAnnotation.value();
-        LOG.debug("Found table {}", tableName);
+        getLogger().debug("table name is [{}]", tableName);
     }
 
     /**
@@ -106,7 +103,15 @@ public class BaseDao<T> implements AsyncDataAccess<T>
             }
         }
         this.tableField = list.toArray(new Field[list.size()]);
-        LOG.debug("Found table {}, column is {}", tableName, list);
+        getLogger().debug("column is [{}]", dumpFields(list));
+    }
+    
+    private String dumpFields(List<Field> fields) {
+        StringBuilder builder = new StringBuilder();
+        for (Field field : fields) {
+            builder.append(field.getName()).append(", ");
+        }
+        return builder.substring(0, builder.length() - 1);
     }
 
     /**
@@ -126,7 +131,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
         sql = sql.replace("$assignment", assign);
         sql = sql.replace("$primarykey", this.primaryKey.getName());
         this.sql_update = sql;
-        LOG.debug("Found table {}, update sql is {}", tableName, sql_update);
+        getLogger().debug("update sql is [{}]", sql_update);
     }
 
     // 获取SQL赋值格式(key1=?,key2=?...)
@@ -146,7 +151,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
         sql = sql.replace("$keys", keys);
         sql = sql.replace("$values", values);
         this.sql_insert = sql;
-        LOG.debug("Found table {}, insert sql is {}", tableName, sql_insert);
+        getLogger().debug("insert sql is [{}]", sql_insert);
     }
 
     // 获取插入KEY
@@ -172,7 +177,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
         String sql = SQL_DELETE_BY_PRIMARY_KEY.replace("$table", tableName);
         sql = sql.replace("$primarykey", this.primaryKey.getName());
         this.sql_delete = sql;
-        LOG.debug("Found table {}, delete sql is {}", tableName, sql_delete);
+        getLogger().debug("delete sql is [{}]", sql_delete);
     }
 
     // 生成主键查询操作SQL
@@ -180,7 +185,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
         String sql = SQL_SELECT_BY_PRIMARY_KEY.replace("$table", tableName);
         sql = sql.replace("$primarykey", this.primaryKey.getName());
         this.sql_select_by_primary_key = sql;
-        LOG.debug("Found table {}, select by primarykey sql is {}", tableName, sql_select_by_primary_key);
+        getLogger().debug("select by primarykey sql is [{}]", sql_select_by_primary_key);
     }
 
     // 生成其他关键字查询操作SQL
@@ -192,7 +197,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
         String sql = SQL_SELECT_BY_SECOND_KEY.replace("$table", tableName);
         sql = sql.replace("$secondkey", this.secondaryKey.getName());
         this.sql_select_by_second_key = sql;
-        LOG.debug("Found table {}, select by secondarykey sql is {}", tableName, sql_select_by_second_key);
+        getLogger().debug("select by secondarykey sql is [{}]", sql_select_by_second_key);
     }
 
     // 生成SQL参数
@@ -269,7 +274,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
         Object param = getInsertParam(t);
         getJdbcTemplate().update(sql, param);
         timer.end();
-        LOG.debug("Table {}.add, time = {} ns", tableName, timer.time());
+        getLogger().debug("Table {}.add, time = {} ns", tableName, timer.time());
     }
 
     @Override
@@ -278,7 +283,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
         String sql = sql_delete;
         getJdbcTemplate().update(sql, new Object[] { primaryKey });
         timer.end();
-        LOG.debug("Table {}.delete, time = {} ns", tableName, timer.time());
+        getLogger().debug("Table {}.delete, time = {} ns", tableName, timer.time());
     }
 
     @Override
@@ -288,7 +293,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
         Object[] param = getUpdateParam(t);
         getJdbcTemplate().update(sql, param);
         timer.end();
-        LOG.debug("Table {}.update, time = {} ns", tableName, timer.time());
+        getLogger().debug("Table {}.update, time = {} ns", tableName, timer.time());
     }
 
     @Override
@@ -299,7 +304,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
             return getJdbcTemplate().query(sql, new Object[] { primaryKey }, beanExtrator);
         } finally {
             timer.end();
-            LOG.debug("Table {}.get, time = {} ns", tableName, timer.time());
+            getLogger().debug("Table {}.get, time = {} ns", tableName, timer.time());
         }
     }
 
@@ -311,7 +316,7 @@ public class BaseDao<T> implements AsyncDataAccess<T>
             return getJdbcTemplate().query(sql, new Object[] { secondaryKey }, beanListExtractor);
         } finally {
             timer.end();
-            LOG.debug("Table {}.getBySecondaryKey, time = {} ns", tableName, timer.time());
+            getLogger().debug("Table {}.getBySecondaryKey, time = {} ns", tableName, timer.time());
         }
     }
 
@@ -363,6 +368,8 @@ public class BaseDao<T> implements AsyncDataAccess<T>
     protected void addTask(Runnable task) {
         dbService.addTask(task);
     }
+
+    protected abstract Logger getLogger();
 
     /**
      * 时间测试，用法:
