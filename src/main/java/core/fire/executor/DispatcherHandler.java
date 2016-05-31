@@ -3,7 +3,6 @@
  */
 package core.fire.executor;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.OrderComparator;
 
 import com.google.protobuf.GeneratedMessage;
 
@@ -35,7 +35,6 @@ import io.netty.util.AttributeKey;
  * 对于每一个请求，都将按以下流程顺序处理
  * <ol>
  * <li>拦截请求</li>
- * <li>过滤请求</li>
  * <li>处理请求</li>
  * </ol>
  * 
@@ -56,11 +55,8 @@ public final class DispatcherHandler implements Component
     // 消息队列将被作为附件设置到channel上
     // 绑定了消息队列的session的事件将被提交到消息队列执行，否则统一提交到公用消息队列
     public static final AttributeKey<Sequence> SEQUENCE_KEY = AttributeKey.valueOf("SEQUENCE_KEY");
-
     // 请求拦截器
     private HandlerInterceptor[] interceptors = new HandlerInterceptor[0];
-    // 请求过滤器
-    private HandlerFilter[] filters = new HandlerFilter[0];
 
     @Autowired
     private CoreConfiguration config;
@@ -98,8 +94,8 @@ public final class DispatcherHandler implements Component
             return;
         }
 
-        SocketRequest request = makeRequest(channel, packet);
-        SocketResponse response = makeResponse(channel);
+        SocketRequest request = new SocketRequest(channel, packet);
+        SocketResponse response = new SocketResponse(channel);
         RunnableTask task = new RunnableTask(request, response, handler);
 
         Sequence sequence = channel.attr(SEQUENCE_KEY).get();
@@ -110,12 +106,60 @@ public final class DispatcherHandler implements Component
         }
     }
 
-    private SocketRequest makeRequest(Channel channel, Packet packet) {
-        return new SocketRequest(channel, packet);
+    /**
+     * 获取请求参数类型
+     * 
+     * @param code
+     * @return
+     */
+    public GeneratedMessage getParamType(short code) {
+        return requestParamType.get(code);
     }
 
-    private SocketResponse makeResponse(Channel channel) {
-        return new SocketResponse(channel);
+    /**
+     * 生成消息队列
+     * 
+     * @return
+     */
+    public Sequence newSequence() {
+        return new Sequence(executor);
+    }
+
+    @Override
+    public void start() throws Exception {
+        loadHandler(config.getTcpHandlerScanPackages());
+        loadInterceptor(config.getTcpInterceptorScanPackages());
+        LOG.debug("DispatcherHandler start");
+    }
+
+    /**
+     * 加载指令处理器
+     * 
+     * @param searchPackage 支持使用英文逗号分隔多个包
+     * @throws Exception
+     */
+    private void loadHandler(String searchPackage) throws Exception {
+        LOG.debug("Load handler from packages {}", searchPackage);
+
+        Consumer<Class<?>> consumer = clas -> {
+            try {
+                if (clas.isAnnotationPresent(RequestHandler.class)) {
+                    RequestHandler annotation = clas.getAnnotation(RequestHandler.class);
+                    short code = annotation.code();
+                    Handler handlerInstance = (Handler) clas.newInstance();
+                    addHandler(code, handlerInstance);
+                    Class<? extends GeneratedMessage> paramType = annotation.requestParamType();
+                    GeneratedMessage paramInstance = instantiate(paramType);
+                    addParamType(code, paramInstance);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+        doLoad(searchPackage, consumer);
+
+        LOG.debug("{} handler has been loaded", handlerMap.size());
     }
 
     /**
@@ -144,69 +188,12 @@ public final class DispatcherHandler implements Component
     }
 
     /**
-     * 获取请求参数类型
-     * 
-     * @param code
-     * @return
-     */
-    public GeneratedMessage getParamType(short code) {
-        return requestParamType.get(code);
-    }
-
-    /**
-     * 生成消息队列
-     * 
-     * @return
-     */
-    public Sequence newSequence() {
-        return new Sequence(executor);
-    }
-
-    @Override
-    public void start() throws Exception {
-        loadHandler(config.getTcpHandlerScanPackages());
-        loadHandlerInterceptor(config.getTcpInterceptorScanPackages());
-        loadHandlerFilter(config.getTcpFilterScanPackages());
-        LOG.debug("DispatcherHandler start");
-    }
-
-    /**
-     * 加载指令处理器
-     * 
-     * @param searchPackage 搜索包名，多个包名使用逗号分割
-     * @throws Exception
-     */
-    private void loadHandler(String searchPackage) throws Exception {
-        LOG.debug("Load handler from packages {}", searchPackage);
-
-        Consumer<Class<?>> consumer = clas -> {
-            try {
-                if (clas.isAnnotationPresent(RequestHandler.class)) {
-                    RequestHandler annotation = clas.getAnnotation(RequestHandler.class);
-                    short code = annotation.code();
-                    Handler handlerInstance = (Handler) clas.newInstance();
-                    addHandler(code, handlerInstance);
-                    Class<? extends GeneratedMessage> paramType = annotation.requestParamType();
-                    GeneratedMessage paramInstance = instantiate(paramType);
-                    addParamType(code, paramInstance);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
-
-        doLoad(searchPackage, consumer);
-
-        LOG.debug("{} handler has been loaded", handlerMap.size());
-    }
-
-    /**
      * 加载协议拦截器
      * 
-     * @param scanPackages
+     * @param scanPackages 支持使用英文逗号分隔多个包
      * @throws Exception
      */
-    private void loadHandlerInterceptor(String scanPackages) throws Exception {
+    private void loadInterceptor(String scanPackages) throws Exception {
         LOG.debug("Load interceptor from packages {}", scanPackages);
 
         Class<HandlerInterceptor> interceptorClass = HandlerInterceptor.class;
@@ -224,40 +211,14 @@ public final class DispatcherHandler implements Component
 
         doLoad(scanPackages, consumer);
 
+        interceptorList.sort(OrderComparator.INSTANCE);
+        LOG.debug("After sort, handler interceptor list is {}", interceptorList);
         this.interceptors = interceptorList.toArray(new HandlerInterceptor[interceptorList.size()]);
         LOG.debug("{} interceptors has been loaded", interceptors.length);
     }
 
     /**
-     * 加载协议过滤器
-     * 
-     * @param scanPackages
-     * @throws Exception
-     */
-    private void loadHandlerFilter(String scanPackages) throws Exception {
-        LOG.debug("Load filter from packages {}", scanPackages);
-
-        Class<HandlerFilter> filterClass = HandlerFilter.class;
-        List<HandlerFilter> filterList = new ArrayList<>();
-        Consumer<Class<?>> consumer = clas -> {
-            try {
-                if (filterClass.isAssignableFrom(clas) && clas != filterClass && !Modifier.isAbstract(clas.getModifiers())) {
-                    HandlerFilter interceptor = (HandlerFilter) clas.newInstance();
-                    filterList.add(interceptor);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
-
-        doLoad(scanPackages, consumer);
-
-        this.filters = filterList.toArray(new HandlerFilter[filterList.size()]);
-        LOG.debug("{} filters has been loaded", filters.length);
-    }
-
-    /**
-     * 统一类加载逻辑，自定义目标类遍历方法
+     * 统一加载逻辑，自定义目标类遍历方法
      * 
      * @param scanPackages
      * @param consumer
@@ -276,8 +237,7 @@ public final class DispatcherHandler implements Component
     }
 
     // 每个生成的PB协议类都应该有一个getDefaultInstance静态方法
-    private GeneratedMessage instantiate(Class<? extends GeneratedMessage> type)
-            throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    private GeneratedMessage instantiate(Class<? extends GeneratedMessage> type) throws Exception {
         Method method = type.getMethod("getDefaultInstance");
         return (GeneratedMessage) method.invoke(type);
     }
@@ -312,15 +272,7 @@ public final class DispatcherHandler implements Component
                     }
                 }
 
-                // 过滤
-                HandlerFilter[] filters = DispatcherHandler.this.filters;
-                for (int i = 0; i < filters.length; i++) {
-                    HandlerFilter filter = filters[i];
-                    if (!filter.doFilter(request, response)) {
-                        return;
-                    }
-                }
-
+                // 处理
                 handler.handle(request, response);
             } catch (Throwable t) {
                 LOG.error("{}", errorDump(), t);

@@ -20,8 +20,6 @@ public class CoreConfiguration
     private String tcpHandlerScanPackages;
     /** tcp协议拦截器扫描包，允许用英文逗号分隔多个包名 */
     private String tcpInterceptorScanPackages;
-    /** tcp协议过滤器扫描包，允许用英文逗号分隔多个包名 */
-    private String tcpFilterScanPackages;
     /** rpc协议处理器扫描包，允许用英文逗号分隔多个包名 */
     private String rpcHandlerScanPackages;
     /** http协议处理器扫描包，允许用英文逗号分隔多个包名 */
@@ -151,23 +149,5 @@ public class CoreConfiguration
      */
     public void setTcpInterceptorScanPackages(String tcpInterceptorScanPackages) {
         this.tcpInterceptorScanPackages = tcpInterceptorScanPackages;
-    }
-
-    /**
-     * tcp协议过滤器扫描包，允许用英文逗号分隔多个包名
-     * 
-     * @return
-     */
-    public String getTcpFilterScanPackages() {
-        return tcpFilterScanPackages;
-    }
-
-    /**
-     * tcp协议过滤器扫描包，允许用英文逗号分隔多个包名
-     * 
-     * @param tcpFilterScanPackages
-     */
-    public void setTcpFilterScanPackages(String tcpFilterScanPackages) {
-        this.tcpFilterScanPackages = tcpFilterScanPackages;
     }
 }
