@@ -37,6 +37,8 @@ import io.netty.util.AttributeKey;
  * <li>拦截请求</li>
  * <li>处理请求</li>
  * </ol>
+ * <p>
+ * 所有实现了{@linkplain HandlerInterceptor}接口的非抽象类都将被自动加载为协议拦截器
  * 
  * @author lhl
  *
@@ -56,7 +58,7 @@ public final class DispatcherHandler implements Component
     // 绑定了消息队列的session的事件将被提交到消息队列执行，否则统一提交到公用消息队列
     public static final AttributeKey<Sequence> SEQUENCE_KEY = AttributeKey.valueOf("SEQUENCE_KEY");
     // 请求拦截器
-    private HandlerInterceptor[] interceptors = new HandlerInterceptor[0];
+    private HandlerInterceptor[] interceptors;
 
     @Autowired
     private CoreConfiguration config;
@@ -141,7 +143,7 @@ public final class DispatcherHandler implements Component
     private void loadHandler(String searchPackage) throws Exception {
         LOG.debug("Load handler from packages {}", searchPackage);
 
-        Consumer<Class<?>> consumer = clas -> {
+        doLoad(searchPackage, clas -> {
             try {
                 if (clas.isAnnotationPresent(RequestHandler.class)) {
                     RequestHandler annotation = clas.getAnnotation(RequestHandler.class);
@@ -155,9 +157,7 @@ public final class DispatcherHandler implements Component
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        };
-
-        doLoad(searchPackage, consumer);
+        });
 
         LOG.debug("{} handler has been loaded", handlerMap.size());
     }
@@ -187,6 +187,12 @@ public final class DispatcherHandler implements Component
         requestParamType.put(code, param);
     }
 
+    // 每个生成的PB协议类都应该有一个getDefaultInstance静态方法
+    private GeneratedMessage instantiate(Class<? extends GeneratedMessage> type) throws Exception {
+        Method method = type.getMethod("getDefaultInstance");
+        return (GeneratedMessage) method.invoke(type);
+    }
+
     /**
      * 加载协议拦截器
      * 
@@ -198,7 +204,7 @@ public final class DispatcherHandler implements Component
 
         Class<HandlerInterceptor> interceptorClass = HandlerInterceptor.class;
         List<HandlerInterceptor> interceptorList = new ArrayList<>();
-        Consumer<Class<?>> consumer = clas -> {
+        doLoad(scanPackages, clas -> {
             try {
                 if (interceptorClass.isAssignableFrom(clas) && clas != interceptorClass && !Modifier.isAbstract(clas.getModifiers())) {
                     HandlerInterceptor interceptor = (HandlerInterceptor) clas.newInstance();
@@ -207,9 +213,7 @@ public final class DispatcherHandler implements Component
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        };
-
-        doLoad(scanPackages, consumer);
+        });
 
         interceptorList.sort(OrderComparator.INSTANCE);
         LOG.debug("After sort, handler interceptor list is {}", interceptorList);
@@ -234,12 +238,6 @@ public final class DispatcherHandler implements Component
             List<Class<?>> classList = ClassUtil.getClasses(onePackage);
             classList.forEach(consumer);
         }
-    }
-
-    // 每个生成的PB协议类都应该有一个getDefaultInstance静态方法
-    private GeneratedMessage instantiate(Class<? extends GeneratedMessage> type) throws Exception {
-        Method method = type.getMethod("getDefaultInstance");
-        return (GeneratedMessage) method.invoke(type);
     }
 
     @Override
