@@ -3,6 +3,7 @@
  */
 package core.fire.net.tcp;
 
+import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import core.fire.NamedThreadFactory;
@@ -27,26 +28,35 @@ public class SocketClient
     protected Bootstrap bootstrap = new Bootstrap();
     protected EventLoopGroup multiplexer;
     protected Channel channel;
-    private String host;
-    private int port;
+    protected SocketAddress address;
 
     private ChannelInitializer<Channel> initializer;
 
-    public SocketClient(String host, int port) {
-        this.host = host;
-        this.port = port;
+    private SocketClient() {
     }
 
-    /**
-     * 初始化客户端相关资源
-     */
-    public void init() {
+    public static SocketClient newBuilder() {
+        return new SocketClient();
+    }
+
+    public SocketClient setHost(SocketAddress address) {
+        this.address = address;
+        return this;
+    }
+
+    public SocketClient setChannelInitializer(ChannelInitializer<Channel> initializer) {
+        this.initializer = initializer;
+        return this;
+    }
+
+    public SocketClient build() {
+        this.init();
+        return this;
+    }
+
+    private void init() {
         multiplexer = new NioEventLoopGroup(1, new NamedThreadFactory("client"));
         bootstrap.group(multiplexer).channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true).handler(initializer);
-    }
-
-    public void setChannelInitializer(ChannelInitializer<Channel> initializer) {
-        this.initializer = initializer;
     }
 
     /**
@@ -55,10 +65,10 @@ public class SocketClient
      * @throws RuntimeException 如果无法建立与远程主机的连接
      */
     public void connect() {
-        ChannelFuture cf = bootstrap.connect(host, port);
+        ChannelFuture cf = bootstrap.connect(address);
         cf.awaitUninterruptibly(5, TimeUnit.SECONDS);
         if (!cf.isSuccess()) {
-            throw new RuntimeException("Can not connect to " + host + ":" + port);
+            throw new RuntimeException("Can not connect to " + address);
         }
         channel = cf.channel();
     }
@@ -95,7 +105,7 @@ public class SocketClient
      * @return
      */
     public String remoteAddress() {
-        return host + ":" + port;
+        return address.toString();
     }
 
     /**
