@@ -49,5 +49,5 @@ public interface AsyncDataAccess<T> extends DataAccess<T>
      * @param secondaryKey
      * @param cb
      */
-    void asyncGetBySecondaryKey(int secondaryKey, Callback cb);
+    void asyncGetBySecondaryKey(Object secondaryKey, Callback cb);
 }

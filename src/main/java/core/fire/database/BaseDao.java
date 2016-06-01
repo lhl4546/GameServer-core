@@ -352,7 +352,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     @Override
-    public void asyncGetBySecondaryKey(int secondaryKey, Callback cb) {
+    public void asyncGetBySecondaryKey(Object secondaryKey, Callback cb) {
         Runnable task = () -> {
             try {
                 List<T> t = getBySecondaryKey(secondaryKey);
