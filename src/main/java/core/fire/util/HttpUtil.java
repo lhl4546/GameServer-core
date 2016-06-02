@@ -3,7 +3,6 @@
  */
 package core.fire.util;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,14 +44,7 @@ final public class HttpUtil
             conn.setReadTimeout(HTTP_TIMEOUT_MS);
             conn.connect();
 
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-                String line;
-                StringBuilder builder = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line);
-                }
-                return builder.toString();
-            }
+            return copyToString(conn.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
