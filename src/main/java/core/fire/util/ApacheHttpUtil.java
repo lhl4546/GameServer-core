@@ -1,0 +1,119 @@
+package core.fire.util;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+
+/**
+ * 基于Apache httpclient4实现的GET\POST方法
+ * 
+ * @author lhl
+ *
+ *         2016年5月25日 下午2:36:42
+ */
+public class ApacheHttpUtil
+{
+    public static final int BUFFER_SIZE = 1024;
+    private static HttpClientConnectionManager connMgr = new PoolingHttpClientConnectionManager();
+
+    // ########### GET #############//
+    /**
+     * 发送HTTP GET请求，并返回字符串应答
+     * 
+     * @param url
+     * @return
+     * @throws IOException
+     */
+    public static String GET(String url) throws IOException {
+        HttpUriRequest request = RequestBuilder.get(url).build();
+        return GET(request);
+    }
+
+    /**
+     * 发送HTTP GET请求，并返回字符串应答
+     * 
+     * @param request
+     * @return
+     * @throws IOException
+     */
+    public static String GET(HttpUriRequest request) throws IOException {
+        CloseableHttpClient client = newHttpClient();
+        CloseableHttpResponse rsp = client.execute(request);
+        HttpEntity entity = rsp.getEntity();
+
+        try (InputStream inStream = entity.getContent()) {
+            return copyToString(inStream, StandardCharsets.UTF_8);
+        }
+    }
+
+    // ########### POST ########### //
+    /**
+     * 发送HTTP POST请求，并返回字符串应答
+     * 
+     * @param url
+     * @param params
+     * @throws IOException
+     */
+    public static void POST(String url, Iterable<NameValuePair> params) throws IOException {
+        HttpUriRequest request = RequestBuilder.post(url).setEntity(new UrlEncodedFormEntity(params)).build();
+        POST(request);
+    }
+
+    /**
+     * 发送HTTP POST请求，并返回字符串应答
+     * 
+     * @param request
+     * @throws IOException
+     */
+    public static void POST(HttpUriRequest request) throws IOException {
+        CloseableHttpClient client = newHttpClient();
+        CloseableHttpResponse rsp = client.execute(request);
+        HttpEntity entity = rsp.getEntity();
+        final InputStream in = entity.getContent();
+        try {
+            final byte[] buffer = new byte[2048];
+            int nRead;
+            while ((nRead = in.read(buffer)) != -1) {
+                System.out.println(new String(buffer, 0, nRead));
+            }
+        } finally {
+            in.close();
+        }
+    }
+
+    private static CloseableHttpClient newHttpClient() {
+        return HttpClients.custom().setConnectionManager(connMgr).build();
+    }
+
+    /**
+     * 将输入流内容转换为字符串
+     * 
+     * @param in
+     * @param charset
+     * @return
+     * @throws IOException
+     */
+    public static String copyToString(InputStream in, Charset charset) throws IOException {
+        StringBuilder out = new StringBuilder();
+        InputStreamReader reader = new InputStreamReader(in, charset);
+        char[] buffer = new char[BUFFER_SIZE];
+        int bytesRead = -1;
+        while ((bytesRead = reader.read(buffer)) != -1) {
+            out.append(buffer, 0, bytesRead);
+        }
+        return out.toString();
+    }
+}
