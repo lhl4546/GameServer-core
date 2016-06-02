@@ -105,7 +105,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         this.tableField = list.toArray(new Field[list.size()]);
         getLogger().debug("column is [{}]", dumpFields(list));
     }
-    
+
     private String dumpFields(List<Field> fields) {
         StringBuilder builder = new StringBuilder();
         for (Field field : fields) {
@@ -274,7 +274,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         Object[] param = getInsertParam(t);
         getJdbcTemplate().update(sql, param);
         timer.end();
-        getLogger().debug("Table {}.add, time = {} ms", tableName, timer.time());
+        getLogger().debug("Table {}.add, time = {} ms", tableName, timer.get());
     }
 
     @Override
@@ -283,7 +283,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         String sql = sql_delete;
         getJdbcTemplate().update(sql, new Object[] { primaryKey });
         timer.end();
-        getLogger().debug("Table {}.delete, time = {} ms", tableName, timer.time());
+        getLogger().debug("Table {}.delete, time = {} ms", tableName, timer.get());
     }
 
     @Override
@@ -293,7 +293,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         Object[] param = getUpdateParam(t);
         getJdbcTemplate().update(sql, param);
         timer.end();
-        getLogger().debug("Table {}.update, time = {} ms", tableName, timer.time());
+        getLogger().debug("Table {}.update, time = {} ms", tableName, timer.get());
     }
 
     @Override
@@ -304,7 +304,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
             return getJdbcTemplate().query(sql, new Object[] { primaryKey }, beanExtrator);
         } finally {
             timer.end();
-            getLogger().debug("Table {}.get, time = {} ms", tableName, timer.time());
+            getLogger().debug("Table {}.get, time = {} ms", tableName, timer.get());
         }
     }
 
@@ -316,7 +316,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
             return getJdbcTemplate().query(sql, new Object[] { secondaryKey }, beanListExtractor);
         } finally {
             timer.end();
-            getLogger().debug("Table {}.getBySecondaryKey, time = {} ms", tableName, timer.time());
+            getLogger().debug("Table {}.getBySecondaryKey, time = {} ms", tableName, timer.get());
         }
     }
 
@@ -391,19 +391,29 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         long endTime;
 
         private Timer() {
+            startTime = System.currentTimeMillis();
         }
 
+        /**
+         * 启动计时器，这将记录一个起始时间
+         * 
+         * @return 返回一个计时器实例
+         */
         static Timer start() {
-            Timer timer = new Timer();
-            timer.startTime = System.currentTimeMillis();
-            return timer;
+            return new Timer();
         }
 
+        /**
+         * 计时结束，这将记录一个结束时间
+         */
         void end() {
             endTime = System.currentTimeMillis();
         }
 
-        long time() {
+        /**
+         * @return 返回计时结果，单位毫秒
+         */
+        long get() {
             return endTime - startTime;
         }
     }
