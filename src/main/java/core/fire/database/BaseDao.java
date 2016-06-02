@@ -271,7 +271,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     public void add(T t) {
         Timer timer = Timer.start();
         String sql = sql_insert;
-        Object param = getInsertParam(t);
+        Object[] param = getInsertParam(t);
         getJdbcTemplate().update(sql, param);
         timer.end();
         getLogger().debug("Table {}.add, time = {} ms", tableName, timer.time());
