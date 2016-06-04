@@ -78,7 +78,7 @@ final public class TimeUtil
      * <p>
      * 将2个日期均推至各自的0点0分0秒0毫秒，然后得出2个日期的毫秒差，经过换算得到的值即2者天数之差
      * <p>
-     * 不能直接使用{@link Calendar#get()}获取的日期直接做减法，要考虑跨年跨月等情况
+     * 不能直接使用{@link Calendar#getXXX()}获取的日期直接做减法，要考虑跨年跨月等情况
      * 
      * @param timeOld 较早的日期
      * @param timeNew 较晚的日期
@@ -110,13 +110,13 @@ final public class TimeUtil
     }
 
     /**
-     * 计算现在时刻距离下一个指定日期(周、时、分、秒)最近的毫秒数
+     * 计算现在时刻距离下一个指定日期(周、时、分、秒)最近的延时
      * 
      * @param dayOfWeek 周，参考{@link Calendar#DAY_OF_WEEK}
      * @param hourOfDay 时,24小时制
      * @param minuteOfHour 分
      * @param secondOfMinute 秒
-     * @return 距离下一个指定日期最近的毫秒数
+     * @return 距离下一个指定日期最近的延时(毫秒)
      */
     public static long getWeekDelay(int dayOfWeek, int hourOfDay, int minuteOfHour, int secondOfMinute) {
         Calendar now = Calendar.getInstance();
@@ -135,12 +135,12 @@ final public class TimeUtil
     }
 
     /**
-     * 计算现在时刻距离下一个指定时间(时、分、秒)最近的毫秒数
+     * 计算现在时刻距离下一个指定时间(时、分、秒)最近的延时
      * 
      * @param hourOfDay 时,24小时制
      * @param minuteOfHour 分
      * @param secondOfMinute 秒
-     * @return 距离下一个指定时间最近的毫秒数
+     * @return 距离下一个指定时间(时、分、秒)最近的延时(毫秒)
      */
     public static long getDayDelay(int hourOfDay, int minuteOfHour, int secondOfMinute) {
         Calendar now = Calendar.getInstance();
@@ -158,13 +158,13 @@ final public class TimeUtil
     }
 
     /**
-     * 计算现在时刻距离下一个指定时间(日、时、分、秒)最近的毫秒数
+     * 计算现在时刻距离下一个指定时间(日、时、分、秒)最近的延时
      * 
      * @param dayOfMonth 日(相对月)
      * @param hourOfDay 时，24小时制
      * @param minute 分
      * @param second 秒
-     * @return 距离下一个指定时间(日、时、分、秒)最近的毫秒数
+     * @return 距离下一个指定时间(日、时、分、秒)最近的延时(毫秒)
      */
     public static long getMonthDelay(int dayOfMonth, int hourOfDay, int minute, int second) {
         Calendar now = Calendar.getInstance();
@@ -184,14 +184,14 @@ final public class TimeUtil
     }
 
     /**
-     * 计算现在时刻距离下一个指定时间(月、日、时、分、秒)最近的毫秒数
+     * 计算现在时刻距离下一个指定时间(月、日、时、分、秒)最近的延时
      * 
-     * @param monthOfyear 月(相对年)
+     * @param monthOfyear 月(相对年)，(使用Calendar常量)
      * @param dayOfMonth 日(相对月)
      * @param hourOfDay 时，24小时制
      * @param minute 分
      * @param second 秒
-     * @return 距离下一个指定时间(日、时、分、秒)最近的毫秒数
+     * @return 距离下一个指定时间(月、日、时、分、秒)最近的延时(毫秒)
      */
     public static long getYearDelay(int monthOfyear, int dayOfMonth, int hourOfDay, int minute, int second) {
         Calendar now = Calendar.getInstance();
