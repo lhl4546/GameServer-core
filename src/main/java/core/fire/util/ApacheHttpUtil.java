@@ -35,9 +35,8 @@ public class ApacheHttpUtil
      * 
      * @param url
      * @return
-     * @throws IOException
      */
-    public static String GET(String url) throws IOException {
+    public static String GET(String url) {
         HttpUriRequest request = RequestBuilder.get(url).build();
         return GET(request);
     }
@@ -47,16 +46,9 @@ public class ApacheHttpUtil
      * 
      * @param request
      * @return
-     * @throws IOException
      */
-    public static String GET(HttpUriRequest request) throws IOException {
-        CloseableHttpClient client = newHttpClient();
-        CloseableHttpResponse rsp = client.execute(request);
-        HttpEntity entity = rsp.getEntity();
-
-        try (InputStream inStream = entity.getContent()) {
-            return copyToString(inStream, StandardCharsets.UTF_8);
-        }
+    public static String GET(HttpUriRequest request) {
+        return execute(request);
     }
 
     // ########### POST ########### //
@@ -65,32 +57,35 @@ public class ApacheHttpUtil
      * 
      * @param url
      * @param params
-     * @throws IOException
+     * @param return
      */
-    public static void POST(String url, Iterable<NameValuePair> params) throws IOException {
+    public static String POST(String url, Iterable<NameValuePair> params) {
         HttpUriRequest request = RequestBuilder.post(url).setEntity(new UrlEncodedFormEntity(params)).build();
-        POST(request);
+        return POST(request);
     }
 
     /**
      * 发送HTTP POST请求，并返回字符串应答
      * 
      * @param request
-     * @throws IOException
+     * @return
      */
-    public static void POST(HttpUriRequest request) throws IOException {
+    public static String POST(HttpUriRequest request) {
+        return execute(request);
+    }
+
+    // ################################################## //
+    private static String execute(HttpUriRequest request) {
         CloseableHttpClient client = newHttpClient();
-        CloseableHttpResponse rsp = client.execute(request);
-        HttpEntity entity = rsp.getEntity();
-        final InputStream in = entity.getContent();
         try {
-            final byte[] buffer = new byte[2048];
-            int nRead;
-            while ((nRead = in.read(buffer)) != -1) {
-                System.out.println(new String(buffer, 0, nRead));
+            CloseableHttpResponse rsp = client.execute(request);
+            HttpEntity entity = rsp.getEntity();
+
+            try (InputStream inStream = entity.getContent()) {
+                return copyToString(inStream, StandardCharsets.UTF_8);
             }
-        } finally {
-            in.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -106,7 +101,7 @@ public class ApacheHttpUtil
      * @return
      * @throws IOException
      */
-    public static String copyToString(InputStream in, Charset charset) throws IOException {
+    private static String copyToString(InputStream in, Charset charset) throws IOException {
         StringBuilder out = new StringBuilder();
         InputStreamReader reader = new InputStreamReader(in, charset);
         char[] buffer = new char[BUFFER_SIZE];

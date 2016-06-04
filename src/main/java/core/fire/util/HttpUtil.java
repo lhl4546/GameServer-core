@@ -70,9 +70,12 @@ final public class HttpUtil
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             conn.setRequestProperty("Content-Length", String.valueOf(param.length));
-            try (OutputStream out = conn.getOutputStream()) {
-                out.write(param);
-                out.flush();
+
+            if (param.length > 0) {
+                try (OutputStream out = conn.getOutputStream()) {
+                    out.write(param);
+                    out.flush();
+                }
             }
 
             return copyToString(conn.getInputStream(), StandardCharsets.UTF_8);
@@ -89,7 +92,7 @@ final public class HttpUtil
      * @return
      * @throws IOException
      */
-    public static String copyToString(InputStream in, Charset charset) throws IOException {
+    private static String copyToString(InputStream in, Charset charset) throws IOException {
         StringBuilder out = new StringBuilder();
         InputStreamReader reader = new InputStreamReader(in, charset);
         char[] buffer = new char[BUFFER_SIZE];
