@@ -4,10 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import core.fire.database.DBService;
-import core.fire.executor.DispatcherHandler;
-import core.fire.net.tcp.NettyServer;
-
 /**
  * 应用启动器，可继承此类，建议子类实现单例模式以提供对Spring应用上下文的访问。 注意： 1. 具体工程必须import
  * LauncherConfig类， 2. 需要提供CoreConfiguration(或其子类)Spring bean 3.
@@ -56,7 +52,7 @@ public class Launcher implements Component
     }
 
     /**
-     * 启动组件，子类重写该方法以启动自定义组件。
+     * 启动组件，子类重写该方法以启动自定义组件。本类默认不启动任何组件。
      * <p>
      * core提供组件如下:
      * <ul>
@@ -84,14 +80,10 @@ public class Launcher implements Component
     }
 
     /**
-     * 停止组件
+     * 停止组件，子类重写该方法以停止自定义组件
      * 
      * @throws Exception
      */
     protected void doStop() throws Exception {
-        context.getBean(NettyServer.class).stop();
-        context.getBean(DispatcherHandler.class).stop();
-        context.getBean(Timer.class).stop();
-        context.getBean(DBService.class).stop();
     }
 }
