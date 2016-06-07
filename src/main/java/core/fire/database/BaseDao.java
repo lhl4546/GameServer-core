@@ -385,7 +385,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
      *
      *         2016年5月10日 下午3:47:31
      */
-    static class Timer
+    public static class Timer
     {
         long startTime;
         long endTime;
@@ -399,21 +399,21 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
          * 
          * @return 返回一个计时器实例
          */
-        static Timer start() {
+        public static Timer start() {
             return new Timer();
         }
 
         /**
          * 计时结束，这将记录一个结束时间
          */
-        void end() {
+        public void end() {
             endTime = System.currentTimeMillis();
         }
 
         /**
          * @return 返回计时结果，单位毫秒
          */
-        long get() {
+        public long get() {
             return endTime - startTime;
         }
     }
