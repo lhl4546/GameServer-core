@@ -18,7 +18,6 @@ import core.fire.util.Util;
  *
  *         2016年2月16日 下午3:45:01
  */
-@org.springframework.stereotype.Component
 public class DBService implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);

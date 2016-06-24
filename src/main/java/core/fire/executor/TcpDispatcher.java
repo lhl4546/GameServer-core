@@ -13,8 +13,6 @@ import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.OrderComparator;
 
 import com.google.protobuf.GeneratedMessage;
 
@@ -44,10 +42,9 @@ import io.netty.util.AttributeKey;
  *
  *         2016年1月30日 下午3:49:52
  */
-@org.springframework.stereotype.Component
-public final class DispatcherHandler implements Component
+public final class TcpDispatcher implements Component
 {
-    private static final Logger LOG = LoggerFactory.getLogger(DispatcherHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TcpDispatcher.class);
     // <指令，处理器>
     private IntHashMap<Handler> handlerMap = new IntHashMap<>();
     // <指令，请求参数类型>
@@ -60,10 +57,10 @@ public final class DispatcherHandler implements Component
     // 请求拦截器
     private HandlerInterceptor[] interceptors;
 
-    @Autowired
     private CoreConfiguration config;
 
-    public DispatcherHandler() {
+    public TcpDispatcher(CoreConfiguration config) {
+        this.config = config;
         initLogicThreadPool();
     }
 
@@ -215,7 +212,7 @@ public final class DispatcherHandler implements Component
             }
         });
 
-        interceptorList.sort(OrderComparator.INSTANCE);
+        interceptorList.sort(null);
         LOG.debug("After sort, handler interceptor list is {}", interceptorList);
         this.interceptors = interceptorList.toArray(new HandlerInterceptor[interceptorList.size()]);
         LOG.debug("{} interceptors has been loaded", interceptors.length);
@@ -262,7 +259,7 @@ public final class DispatcherHandler implements Component
         public void run() {
             try {
                 // 拦截
-                HandlerInterceptor[] interceptors = DispatcherHandler.this.interceptors;
+                HandlerInterceptor[] interceptors = TcpDispatcher.this.interceptors;
                 for (int i = 0; i < interceptors.length; i++) {
                     HandlerInterceptor interceptor = interceptors[i];
                     if (!interceptor.preHandle(request, response)) {

@@ -5,8 +5,8 @@ package core.fire.net.tcp;
 
 import java.util.Arrays;
 
-import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.GeneratedMessage.Builder;
+import com.google.protobuf.Message;
 
 import core.fire.Dumpable;
 
@@ -42,7 +42,7 @@ public class Packet implements Dumpable
      * @throws IllegalStateException
      */
     @SuppressWarnings("unchecked")
-    public <T extends GeneratedMessage> T toProto(T t) throws IllegalStateException {
+    public <T extends Message> T toProto(T t) throws IllegalStateException {
         try {
             return (T) t.newBuilderForType().mergeFrom(body).build();
         } catch (Exception e) {

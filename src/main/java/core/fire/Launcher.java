@@ -2,12 +2,26 @@ package core.fire;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+import core.fire.executor.TcpDispatcher;
+import core.fire.net.http.HttpInboundHandler;
+import core.fire.net.http.HttpServer;
+import core.fire.net.http.HttpDispatcher;
+import core.fire.net.http.HttpServerInitializer;
+import core.fire.net.tcp.CodecFactory;
+import core.fire.net.tcp.NettyChannelInitializer;
+import core.fire.net.tcp.NettyHandler;
+import core.fire.net.tcp.TcpServer;
+import core.fire.net.tcp.PlainProtocolDecoder;
+import core.fire.net.tcp.PlainProtocolEncoder;
+import core.fire.rpc.RPCServer;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelOutboundHandler;
 
 /**
- * 应用启动器，可继承此类，建议子类实现单例模式以提供对Spring应用上下文的访问。 注意： 1. 具体工程必须import
- * LauncherConfig类， 2. 需要提供CoreConfiguration(或其子类)Spring bean 3.
- * 如需使用数据库访问，需要提供JDBCTemplate Spring bean
+ * 应用启动器
+ * <p>
+ * 如需使用数据库访问，需要提供JDBCTemplate Spring bean和DBService Spring bean
  * 
  * @author lhl
  *
@@ -16,30 +30,61 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class Launcher implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
-    /**
-     * Spring应用上下文(基于注解扫描)
-     */
-    protected final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+
+    // *****************************************//
+    protected CoreConfiguration config;
+
+    protected Timer timer;
+    protected TcpDispatcher tcpDispatcher;
+    protected TcpServer tcpServer;
+    protected HttpServer httpServer;
+    protected HttpDispatcher httpDispatcher;
+    protected RPCServer rpcServer;
+    // *****************************************//
+
+    protected Launcher(CoreConfiguration config) {
+        this.config = config;
+        initializeComponent();
+    }
+
+    protected void initializeComponent() {
+        timer = new Timer();
+
+        tcpDispatcher = new TcpDispatcher(config);
+        NettyHandler netHandler = new NettyHandler(tcpDispatcher);
+        CodecFactory codecFactory = new CodecFactory() {
+            PlainProtocolEncoder encoder = new PlainProtocolEncoder();
+
+            @Override
+            public ChannelOutboundHandler getEncoder() {
+                return encoder;
+            }
+
+            @Override
+            public ChannelInboundHandler getDecoder() {
+                return new PlainProtocolDecoder();
+            }
+        };
+        NettyChannelInitializer channelInitializer = new NettyChannelInitializer(netHandler, codecFactory);
+        tcpServer = new TcpServer(channelInitializer, config);
+
+        httpDispatcher = new HttpDispatcher(config);
+        HttpInboundHandler httpHandler = new HttpInboundHandler(httpDispatcher);
+        HttpServerInitializer httpInitializer = new HttpServerInitializer(httpHandler);
+        httpServer = new HttpServer(httpInitializer, config);
+
+        rpcServer = new RPCServer(config);
+    }
 
     @Override
     public final void start() {
         try {
-            registerConfigClass(context);
-            context.refresh();
             registerShutdownHook();
             doStart();
         } catch (Exception e) {
             LOG.error("Server start failed", e);
             System.exit(-1);
         }
-    }
-
-    /**
-     * 子类重写该方法以注册自定义配置类
-     * 
-     * @param ctx
-     */
-    protected void registerConfigClass(AnnotationConfigApplicationContext ctx) {
     }
 
     /**
@@ -57,7 +102,6 @@ public class Launcher implements Component
      * core提供组件如下:
      * <ul>
      * <li>Timer</li>
-     * <li>DBService</li>
      * <li>DispatcherHandler</li>
      * <li>NettyServer</li>
      * <li>HttpServer</li>

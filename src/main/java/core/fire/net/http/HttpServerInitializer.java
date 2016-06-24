@@ -15,19 +15,18 @@
  */
 package core.fire.net.http;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 
-@Component
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel>
 {
-    @Autowired
     private HttpInboundHandler handler;
+
+    public HttpServerInitializer(HttpInboundHandler handler) {
+        this.handler = handler;
+    }
 
     @Override
     public void initChannel(SocketChannel ch) {

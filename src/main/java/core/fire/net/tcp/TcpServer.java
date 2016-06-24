@@ -5,7 +5,6 @@ package core.fire.net.tcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import core.fire.Component;
 import core.fire.CoreConfiguration;
@@ -25,24 +24,23 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  *
  *         2016年1月29日 下午6:16:21
  */
-@org.springframework.stereotype.Component
-public class NettyServer implements Component
+public class TcpServer implements Component
 {
-    private static final Logger LOG = LoggerFactory.getLogger(NettyServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TcpServer.class);
     private ServerBootstrap bootstrap;
     private EventLoopGroup bossgroup;
     private EventLoopGroup childgroup;
     private Channel serverSocket;
-
-    @Autowired
     private NettyChannelInitializer channelInitializer;
-    @Autowired
     private CoreConfiguration config;
 
     /**
-     * @param dispatcher 消息派发处理器
+     * @param channelInitializer
+     * @param config
      */
-    public NettyServer() {
+    public TcpServer(NettyChannelInitializer channelInitializer, CoreConfiguration config) {
+        this.channelInitializer = channelInitializer;
+        this.config = config;
         this.bootstrap = new ServerBootstrap();
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("ACCEPTOR"));
         int netiothreads = Runtime.getRuntime().availableProcessors();

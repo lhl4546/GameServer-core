@@ -16,7 +16,6 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import core.fire.Component;
 import core.fire.CoreConfiguration;
@@ -28,7 +27,6 @@ import core.fire.util.Util;
  *
  *         2016年2月19日 下午3:24:04
  */
-@org.springframework.stereotype.Component
 public class RPCServer implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(RPCServer.class);
@@ -37,10 +35,10 @@ public class RPCServer implements Component
     private TProtocolFactory protocol;
     private AbstractNonblockingServer server;
 
-    @Autowired
     private CoreConfiguration config;
 
-    public RPCServer() {
+    public RPCServer(CoreConfiguration config) {
+        this.config = config;
         multiplex = new TMultiplexedProcessor();
         protocol = new TCompactProtocol.Factory();
     }

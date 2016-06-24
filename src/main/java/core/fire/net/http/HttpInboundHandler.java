@@ -23,9 +23,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,17 +47,17 @@ import io.netty.util.AttributeKey;
  *
  *         2016年3月28日 下午3:49:19
  */
-@Component
-@Scope("prototype")
 public class HttpInboundHandler extends ChannelInboundHandlerAdapter
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpInboundHandler.class);
     public static final AttributeKey<String> KEY_PATH = AttributeKey.valueOf("KEY_PATH");
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(false);
     private HttpPostRequestDecoder decoder;
+    private HttpDispatcher dispatcher;
 
-    @Autowired
-    private HttpServerDispatcher dispatcher;
+    public HttpInboundHandler(HttpDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

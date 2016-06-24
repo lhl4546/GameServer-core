@@ -10,8 +10,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import core.fire.util.Util;
 import core.fire.util.TimeUtil;
+import core.fire.util.Util;
 
 /**
  * 定时器
@@ -22,7 +22,6 @@ import core.fire.util.TimeUtil;
  * @author lhl
  *
  */
-@org.springframework.stereotype.Component
 public class Timer implements Component
 {
     /** 定时任务执行器 */

@@ -5,10 +5,8 @@ package core.fire.net.tcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import core.fire.executor.DispatcherHandler;
+import core.fire.executor.TcpDispatcher;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -21,13 +19,15 @@ import io.netty.channel.SimpleChannelInboundHandler;
  *         2016年1月29日 下午5:36:23
  */
 @Sharable
-@Component
 public class NettyHandler extends SimpleChannelInboundHandler<Packet>
 {
     private static final Logger LOG = LoggerFactory.getLogger(NettyHandler.class);
 
-    @Autowired
-    private DispatcherHandler dispatcher;
+    private TcpDispatcher dispatcher;
+
+    public NettyHandler(TcpDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {

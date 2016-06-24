@@ -2,7 +2,6 @@ package core.fire.net.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import core.fire.Component;
 import core.fire.CoreConfiguration;
@@ -21,7 +20,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  *
  *         2016年3月28日 下午3:48:06
  */
-@org.springframework.stereotype.Component
 public class HttpServer implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpServer.class);
@@ -29,13 +27,12 @@ public class HttpServer implements Component
     private EventLoopGroup bossgroup;
     private EventLoopGroup childgroup;
     private Channel serverSocket;
-
-    @Autowired
     private HttpServerInitializer initializer;
-    @Autowired
     private CoreConfiguration config;
 
-    public HttpServer() {
+    public HttpServer(HttpServerInitializer initializer, CoreConfiguration config) {
+        this.initializer = initializer;
+        this.config = config;
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("http-acceptor"));
         int netioThreads = Runtime.getRuntime().availableProcessors();
         this.childgroup = new NioEventLoopGroup(netioThreads, new NamedThreadFactory("http"));

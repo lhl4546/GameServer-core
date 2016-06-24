@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import core.fire.Component;
 import core.fire.CoreConfiguration;
@@ -31,14 +30,16 @@ import io.netty.handler.codec.http.HttpVersion;
  *
  *         2016年3月28日 下午4:38:37
  */
-@org.springframework.stereotype.Component
-public class HttpServerDispatcher implements Component, HttpHandler
+public class HttpDispatcher implements Component, HttpHandler
 {
-    private static final Logger LOG = LoggerFactory.getLogger(HttpServerDispatcher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HttpDispatcher.class);
     private Map<String, HttpHandler> handlerMap = new HashMap<>();
 
-    @Autowired
     private CoreConfiguration config;
+    
+    public HttpDispatcher(CoreConfiguration config) {
+        this.config = config;
+    }
 
     @Override
     public void handle(Channel channel, Map<String, List<String>> parameter) {
