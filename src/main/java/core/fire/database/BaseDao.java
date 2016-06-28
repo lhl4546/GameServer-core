@@ -322,19 +322,37 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     @Override
     public void asyncAdd(T t) {
-        Runnable task = () -> add(t);
+        Runnable task = () -> {
+            try {
+                add(t);
+            } catch (Throwable ex) {
+                getLogger().error("", ex);
+            }
+        };
         addTask(task);
     }
 
     @Override
     public void asyncDelete(int primaryKey) {
-        Runnable task = () -> delete(primaryKey);
+        Runnable task = () -> {
+            try {
+                delete(primaryKey);
+            } catch (Throwable ex) {
+                getLogger().error("", ex);
+            }
+        };
         addTask(task);
     }
 
     @Override
     public void asyncUpdate(T t) {
-        Runnable task = () -> update(t);
+        Runnable task = () -> {
+            try {
+                update(t);
+            } catch (Throwable ex) {
+                getLogger().error("", ex);
+            }
+        };
         addTask(task);
     }
 

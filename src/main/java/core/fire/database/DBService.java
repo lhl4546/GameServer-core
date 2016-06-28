@@ -24,7 +24,7 @@ public class DBService implements Component
     private ExecutorService worker;
 
     public DBService() {
-        worker = Executors.newSingleThreadExecutor(new NamedThreadFactory("DBService"));
+        worker = Executors.newSingleThreadExecutor(new NamedThreadFactory("dbservice"));
     }
 
     public void addTask(Runnable task) {
