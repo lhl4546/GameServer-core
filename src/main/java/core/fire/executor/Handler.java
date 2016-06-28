@@ -13,8 +13,6 @@ package core.fire.executor;
 public interface Handler
 {
     /**
-     * 处理协议，协议应答由子类自行发送
-     * 
      * @param request
      * @param response
      */

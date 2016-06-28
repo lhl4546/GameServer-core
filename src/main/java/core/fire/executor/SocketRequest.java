@@ -4,15 +4,18 @@ import core.fire.Dumpable;
 import core.fire.net.tcp.Packet;
 import io.netty.channel.Channel;
 
+/**
+ * TCP请求，封装了一系列TCP请求相关的数据。
+ * 
+ * @author lhl
+ *
+ *         2016年6月28日 下午3:37:04
+ */
 public class SocketRequest implements Dumpable
 {
-    /** 网络连接 */
     private Channel channel;
-    /** 请求数据包 */
     private Packet packet;
-    /** 请求参数 */
     private Object requestParameter;
-    /** 经过身份验证的用户 */
     private Object user;
 
     public SocketRequest(Channel channel, Packet packet) {
@@ -39,7 +42,7 @@ public class SocketRequest implements Dumpable
     }
 
     /**
-     * 请求参数
+     * 请求参数。一般用法是将数据包解析为具体的ProtocolBuffer消息类型然后设置为请求参数。
      * 
      * @param requestParameter
      */

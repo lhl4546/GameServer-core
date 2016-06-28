@@ -36,7 +36,7 @@ public class HttpDispatcher implements Component, HttpHandler
     private Map<String, HttpHandler> handlerMap = new HashMap<>();
 
     private CoreConfiguration config;
-    
+
     public HttpDispatcher(CoreConfiguration config) {
         this.config = config;
     }

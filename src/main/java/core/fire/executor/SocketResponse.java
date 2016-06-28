@@ -4,9 +4,15 @@ import core.fire.Dumpable;
 import core.fire.net.tcp.Packet;
 import io.netty.channel.Channel;
 
+/**
+ * TCP应答，封装了一系列TCP应答相关的数据。
+ * 
+ * @author lhl
+ *
+ *         2016年6月28日 下午3:40:29
+ */
 public class SocketResponse implements Dumpable
 {
-    /** 网络连接 */
     private Channel channel;
 
     public SocketResponse(Channel channel) {

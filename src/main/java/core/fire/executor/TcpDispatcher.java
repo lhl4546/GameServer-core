@@ -64,17 +64,11 @@ public final class TcpDispatcher implements Component
         initLogicThreadPool();
     }
 
-    /**
-     * 初始化逻辑处理线程池
-     */
     private void initLogicThreadPool() {
         int threads = Runtime.getRuntime().availableProcessors();
-        this.executor = Executors.newFixedThreadPool(threads, new NamedThreadFactory("LOGIC"));
+        this.executor = Executors.newFixedThreadPool(threads, new NamedThreadFactory("logic"));
     }
 
-    /**
-     * 该方法将在Netty I/O线程池中运行
-     */
     public void handle(Channel channel, Packet packet) {
         doDispatch(channel, packet);
     }
@@ -106,10 +100,10 @@ public final class TcpDispatcher implements Component
     }
 
     /**
-     * 获取请求参数类型
+     * 获取指定协议的参数类型
      * 
-     * @param code
-     * @return
+     * @param code 协议指令
+     * @return 返回null表示没有该指令对应的请求参数类型
      */
     public GeneratedMessage getParamType(short code) {
         return requestParamType.get(code);

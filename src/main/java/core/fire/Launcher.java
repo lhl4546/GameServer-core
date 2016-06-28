@@ -4,24 +4,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.executor.TcpDispatcher;
-import core.fire.net.http.HttpInboundHandler;
-import core.fire.net.http.HttpServer;
 import core.fire.net.http.HttpDispatcher;
-import core.fire.net.http.HttpServerInitializer;
+import core.fire.net.http.HttpServer;
 import core.fire.net.tcp.CodecFactory;
 import core.fire.net.tcp.NettyChannelInitializer;
 import core.fire.net.tcp.NettyHandler;
-import core.fire.net.tcp.TcpServer;
 import core.fire.net.tcp.PlainProtocolDecoder;
 import core.fire.net.tcp.PlainProtocolEncoder;
+import core.fire.net.tcp.TcpServer;
 import core.fire.rpc.RPCServer;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 
 /**
- * 应用启动器
- * <p>
- * 如需使用数据库访问，需要提供JDBCTemplate Spring bean和DBService Spring bean
+ * 应用启动器，主类可以继承此类并重写需要的方法以实现自定义功能，但是{@code setConfig}方法一定要在{@code start}前面调用
  * 
  * @author lhl
  *
@@ -31,7 +27,7 @@ public class Launcher implements Component
 {
     private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
 
-    // *****************************************//
+    // ---------------------------------//
     protected CoreConfiguration config;
 
     protected Timer timer;
@@ -40,19 +36,39 @@ public class Launcher implements Component
     protected HttpServer httpServer;
     protected HttpDispatcher httpDispatcher;
     protected RPCServer rpcServer;
-    // *****************************************//
+    // ---------------------------------//
 
-    protected Launcher(CoreConfiguration config) {
+    /**
+     * 设置配置类
+     * 
+     * @param config
+     */
+    protected void setConfig(CoreConfiguration config) {
         this.config = config;
-        initializeComponent();
     }
 
-    protected void initializeComponent() {
+    private void initializeComponent() {
         timer = new Timer();
 
         tcpDispatcher = new TcpDispatcher(config);
         NettyHandler netHandler = new NettyHandler(tcpDispatcher);
-        CodecFactory codecFactory = new CodecFactory() {
+        CodecFactory codecFactory = getCodecFactory();
+        NettyChannelInitializer channelInitializer = new NettyChannelInitializer(netHandler, codecFactory);
+        tcpServer = new TcpServer(channelInitializer, config);
+
+        httpDispatcher = new HttpDispatcher(config);
+        httpServer = new HttpServer(httpDispatcher, config);
+
+        rpcServer = new RPCServer(config);
+    }
+
+    /**
+     * 子类可以重写该方法以提供自定义的协议编解码
+     * 
+     * @return 协议编解码器
+     */
+    protected CodecFactory getCodecFactory() {
+        return new CodecFactory() {
             PlainProtocolEncoder encoder = new PlainProtocolEncoder();
 
             @Override
@@ -65,21 +81,13 @@ public class Launcher implements Component
                 return new PlainProtocolDecoder();
             }
         };
-        NettyChannelInitializer channelInitializer = new NettyChannelInitializer(netHandler, codecFactory);
-        tcpServer = new TcpServer(channelInitializer, config);
-
-        httpDispatcher = new HttpDispatcher(config);
-        HttpInboundHandler httpHandler = new HttpInboundHandler(httpDispatcher);
-        HttpServerInitializer httpInitializer = new HttpServerInitializer(httpHandler);
-        httpServer = new HttpServer(httpInitializer, config);
-
-        rpcServer = new RPCServer(config);
     }
 
     @Override
     public final void start() {
         try {
             registerShutdownHook();
+            initializeComponent();
             doStart();
         } catch (Exception e) {
             LOG.error("Server start failed", e);

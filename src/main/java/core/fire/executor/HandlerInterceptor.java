@@ -1,7 +1,9 @@
 package core.fire.executor;
 
 /**
- * TCP协议拦截器接口，实现此接口的拦截器将自动被{@linkplain TcpDispatcher}扫描并注册
+ * TCP协议拦截器接口，实现此接口的拦截器将自动被{@linkplain TcpDispatcher}扫描并注册。 该接口继承了
+ * {@link java.lang.Comparable}接口以实现对多个拦截器进行排序，排序先后由 {@link #getOrder()}
+ * 方法返回值决定，返回值越小排名越靠前，默认返回值为0，具体拦截器实现可以重写{@code getOrder()}方法以调整自身排序
  * 
  * @author lhl
  *

@@ -14,7 +14,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
- * 基于Netty实现的Http服务器
+ * 一个基于Netty实现的简易Http服务器，支持GET/POST。
  * 
  * @author lhl
  *
@@ -30,7 +30,8 @@ public class HttpServer implements Component
     private HttpServerInitializer initializer;
     private CoreConfiguration config;
 
-    public HttpServer(HttpServerInitializer initializer, CoreConfiguration config) {
+    public HttpServer(HttpDispatcher dispatcher, CoreConfiguration config) {
+        HttpServerInitializer initializer = new HttpServerInitializer(dispatcher);
         this.initializer = initializer;
         this.config = config;
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("http-acceptor"));

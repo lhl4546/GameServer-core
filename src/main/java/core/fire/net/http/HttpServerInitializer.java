@@ -22,16 +22,16 @@ import io.netty.handler.codec.http.HttpServerCodec;
 
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel>
 {
-    private HttpInboundHandler handler;
+    private HttpDispatcher dispatcher;
 
-    public HttpServerInitializer(HttpInboundHandler handler) {
-        this.handler = handler;
+    public HttpServerInitializer(HttpDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
     }
 
     @Override
     public void initChannel(SocketChannel ch) {
         ChannelPipeline p = ch.pipeline();
         p.addLast("codec", new HttpServerCodec());
-        p.addLast("iohandler", handler);
+        p.addLast("iohandler", new HttpInboundHandler(dispatcher));
     }
 }
