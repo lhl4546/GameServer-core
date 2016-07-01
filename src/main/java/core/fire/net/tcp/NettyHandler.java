@@ -12,7 +12,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 /**
- * 基于Netty实现的网络IO处理器
+ * 基于Netty实现的网络IO处理器。网络消息将被TcpDispatcher分发处理
  * 
  * @author lhl
  *

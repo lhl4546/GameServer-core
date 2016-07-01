@@ -36,7 +36,10 @@ import io.netty.util.AttributeKey;
  * <li>处理请求</li>
  * </ol>
  * <p>
- * 所有实现了{@linkplain HandlerInterceptor}接口的非抽象类都将被自动加载为协议拦截器
+ * 所有实现了{@linkplain HandlerInterceptor}
+ * 接口的非抽象类都将被自动加载为协议拦截器，拦截器扫描包在CoreConfiguration中配置
+ * <p>
+ * 所有以@RequestHandler注解的类都将被自动加载为TCP协议处理类，处理器扫描包在CoreConfiguration中配置
  * 
  * @author lhl
  *

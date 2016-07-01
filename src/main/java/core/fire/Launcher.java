@@ -47,6 +47,9 @@ public class Launcher implements Component
         this.config = config;
     }
 
+    /**
+     * 实例化各组件
+     */
     private void initializeComponent() {
         timer = new Timer();
 
@@ -63,7 +66,7 @@ public class Launcher implements Component
     }
 
     /**
-     * 子类可以重写该方法以提供自定义的协议编解码
+     * 子类可以重写该方法以提供自定义的协议编解码，默认提供一个明文协议传输编解码器
      * 
      * @return 协议编解码器
      */
