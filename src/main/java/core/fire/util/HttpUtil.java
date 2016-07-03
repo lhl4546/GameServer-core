@@ -9,8 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
@@ -39,12 +37,19 @@ final public class HttpUtil
 
         try {
             URL url = new URL(getUrl);
-            URLConnection conn = url.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(HTTP_TIMEOUT_MS);
             conn.setReadTimeout(HTTP_TIMEOUT_MS);
             conn.connect();
 
-            return copyToString(conn.getInputStream(), StandardCharsets.UTF_8);
+            try (InputStream in = conn.getInputStream()) {
+                return copyToString(in);
+            } catch (IOException ioe) {
+                // 服务端返回404等错误代码将导致conn.getInputStream()抛出异常，此时可以使用conn.getErrorStream()获取输出
+                try (InputStream errorStream = conn.getErrorStream()) {
+                    return copyToString(errorStream);
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -78,7 +83,14 @@ final public class HttpUtil
                 }
             }
 
-            return copyToString(conn.getInputStream(), StandardCharsets.UTF_8);
+            try (InputStream in = conn.getInputStream()) {
+                return copyToString(in);
+            } catch (IOException ioe) {
+                // 服务端返回404等错误代码将导致conn.getInputStream()抛出异常，此时可以使用conn.getErrorStream()获取输出
+                try (InputStream errorStream = conn.getErrorStream()) {
+                    return copyToString(errorStream);
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -88,13 +100,12 @@ final public class HttpUtil
      * 将输入流内容转换为字符串
      * 
      * @param in
-     * @param charset
      * @return
      * @throws IOException
      */
-    private static String copyToString(InputStream in, Charset charset) throws IOException {
+    private static String copyToString(InputStream in) throws IOException {
         StringBuilder out = new StringBuilder();
-        InputStreamReader reader = new InputStreamReader(in, charset);
+        InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
         char[] buffer = new char[BUFFER_SIZE];
         int bytesRead = -1;
         while ((bytesRead = reader.read(buffer)) != -1) {
