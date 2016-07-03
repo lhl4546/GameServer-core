@@ -20,7 +20,7 @@ import com.google.protobuf.GeneratedMessage;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface RequestHandler {
+public @interface TcpRequestHandler {
     /**
      * 请求指令
      * 

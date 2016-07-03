@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.google.protobuf.GeneratedMessage;
 
 import core.fire.Component;
-import core.fire.CoreConfiguration;
 import core.fire.Dumpable;
 import core.fire.NamedThreadFactory;
 import core.fire.net.tcp.Packet;
@@ -60,10 +59,12 @@ public final class TcpDispatcher implements Component
     // 请求拦截器
     private HandlerInterceptor[] interceptors;
 
-    private CoreConfiguration config;
+    private String handlerScanPackages;
+    private String interceptorScanPackages;
 
-    public TcpDispatcher(CoreConfiguration config) {
-        this.config = config;
+    public TcpDispatcher(String handlerScanPackages, String interceptorScanPackages) {
+        this.handlerScanPackages = handlerScanPackages;
+        this.interceptorScanPackages = interceptorScanPackages;
         initLogicThreadPool();
     }
 
@@ -123,8 +124,8 @@ public final class TcpDispatcher implements Component
 
     @Override
     public void start() throws Exception {
-        loadHandler(config.getTcpHandlerScanPackages());
-        loadInterceptor(config.getTcpInterceptorScanPackages());
+        loadHandler(handlerScanPackages);
+        loadInterceptor(interceptorScanPackages);
         LOG.debug("DispatcherHandler start");
     }
 
@@ -139,8 +140,8 @@ public final class TcpDispatcher implements Component
 
         doLoad(searchPackage, clas -> {
             try {
-                if (clas.isAnnotationPresent(RequestHandler.class)) {
-                    RequestHandler annotation = clas.getAnnotation(RequestHandler.class);
+                if (clas.isAnnotationPresent(TcpRequestHandler.class)) {
+                    TcpRequestHandler annotation = clas.getAnnotation(TcpRequestHandler.class);
                     short code = annotation.code();
                     Handler handlerInstance = (Handler) clas.newInstance();
                     addHandler(code, handlerInstance);

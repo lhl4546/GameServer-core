@@ -29,7 +29,7 @@ final public class HttpUtil
     /**
      * 发送HTTP GET请求
      * 
-     * @param getUrl 请求url，附带get参数
+     * @param getUrl 请求url，附带get参数，注意参数是否需要URLEncode由调用者决定
      * @return 应答消息
      */
     public static String GET(String getUrl) {

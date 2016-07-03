@@ -7,12 +7,12 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
-import core.fire.CoreConfiguration;
 import core.fire.util.ClassUtil;
 import core.fire.util.Util;
 import io.netty.buffer.Unpooled;
@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
 /**
- * Http请求分发器
+ * http请求分发器
  * 
  * @author lhl
  *
@@ -33,12 +33,27 @@ import io.netty.handler.codec.http.HttpVersion;
 public class HttpDispatcher implements Component, HttpHandler
 {
     private static final Logger LOG = LoggerFactory.getLogger(HttpDispatcher.class);
+    // 请求处理器映射，key=uri
     private Map<String, HttpHandler> handlerMap = new HashMap<>();
+    // 请求处理器扫描包，多个包使用英文逗号分隔
+    private String handlerScanPackages;
+    // 请求处理线程池
+    private ExecutorService executor;
 
-    private CoreConfiguration config;
+    /**
+     * @param handleScanPackages 请求扫描包，多个包使用英文逗号分隔
+     */
+    public HttpDispatcher(String handleScanPackages) {
+        this.handlerScanPackages = handleScanPackages;
+    }
 
-    public HttpDispatcher(CoreConfiguration config) {
-        this.config = config;
+    /**
+     * @param handlerScanPackages 请求扫描包，多个包使用英文逗号分隔
+     * @param executor 请求将提交给这个线程池处理
+     */
+    public HttpDispatcher(String handlerScanPackages, ExecutorService executor) {
+        this.handlerScanPackages = handlerScanPackages;
+        this.executor = executor;
     }
 
     @Override
@@ -47,12 +62,19 @@ public class HttpDispatcher implements Component, HttpHandler
         HttpHandler handler = handlerMap.get(uri);
         if (handler == null) {
             LOG.warn("No handler found for uri {}, session will be close", uri);
-            sendError(channel, "Not found", HttpResponseStatus.NOT_FOUND);
+            // 此处如果返回404会导致基于UrlConnection的HttpUtil抛出FileNotFound异常，但是基于Apache的HttpClient则不会
+            sendError(channel, "Not found", HttpResponseStatus.BAD_REQUEST);
             return;
         }
 
         LOG.debug("Request ip: {}, uri: {}, parameter: {}", channel.remoteAddress(), uri, parameter);
-        handler.handle(channel, parameter);
+
+        if (executor != null) {
+            Runnable task = () -> handler.handle(channel, parameter);
+            executor.submit(task);
+        } else {
+            handler.handle(channel, parameter);
+        }
     }
 
     /**
@@ -71,8 +93,8 @@ public class HttpDispatcher implements Component, HttpHandler
 
     @Override
     public void start() throws Exception {
-        loadHandler(config.getHttpHandlerScanPackages());
-        LOG.debug("HttpServerDispatcher start");
+        loadHandler(handlerScanPackages);
+        LOG.debug("HttpDispatcher start");
     }
 
     /**
@@ -89,7 +111,7 @@ public class HttpDispatcher implements Component, HttpHandler
         String[] packages = Util.split(searchPackage.trim(), ",");
         for (String onePackage : packages) {
             if (!Util.isNullOrEmpty(onePackage)) {
-                LOG.debug("Load handler from package {}", onePackage);
+                LOG.debug("Load http handler from package {}", onePackage);
                 List<Class<?>> classList = ClassUtil.getClasses(onePackage);
                 for (Class<?> handler : classList) {
                     HttpRequestHandler annotation = handler.getAnnotation(HttpRequestHandler.class);
@@ -102,7 +124,13 @@ public class HttpDispatcher implements Component, HttpHandler
         }
     }
 
-    private void addHandler(String uri, HttpHandler handler) {
+    /**
+     * 添加uri与对应的处理器映射
+     * 
+     * @param uri
+     * @param handler
+     */
+    public void addHandler(String uri, HttpHandler handler) {
         HttpHandler oldHandler = handlerMap.put(uri, handler);
         if (oldHandler != null) {
             throw new IllegalStateException("Duplicate handler for uri " + uri + ", old: " + oldHandler.getClass().getName() + ", new: " + handler.getClass().getName());
@@ -111,6 +139,7 @@ public class HttpDispatcher implements Component, HttpHandler
 
     @Override
     public void stop() throws Exception {
-        LOG.debug("HttpServerDispatcher stop");
+        executor.shutdownNow();
+        LOG.debug("HttpDispatcher stop");
     }
 }

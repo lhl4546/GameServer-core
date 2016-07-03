@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
-import core.fire.CoreConfiguration;
 import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -32,15 +31,15 @@ public class TcpServer implements Component
     private EventLoopGroup childgroup;
     private Channel serverSocket;
     private NettyChannelInitializer channelInitializer;
-    private CoreConfiguration config;
+    private int port;
 
     /**
      * @param channelInitializer
-     * @param config
+     * @param port
      */
-    public TcpServer(NettyChannelInitializer channelInitializer, CoreConfiguration config) {
+    public TcpServer(NettyChannelInitializer channelInitializer, int port) {
         this.channelInitializer = channelInitializer;
-        this.config = config;
+        this.port = port;
         this.bootstrap = new ServerBootstrap();
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("ACCEPTOR"));
         int netiothreads = Runtime.getRuntime().availableProcessors();
@@ -49,7 +48,6 @@ public class TcpServer implements Component
 
     @Override
     public void start() throws Exception {
-        int port = config.getTcpPort();
         bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(channelInitializer).option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_LINGER, 0)
                 .childOption(ChannelOption.TCP_NODELAY, true);
         ChannelFuture future = bootstrap.bind(port);

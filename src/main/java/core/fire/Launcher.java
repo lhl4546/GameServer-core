@@ -12,7 +12,6 @@ import core.fire.net.tcp.NettyHandler;
 import core.fire.net.tcp.PlainProtocolDecoder;
 import core.fire.net.tcp.PlainProtocolEncoder;
 import core.fire.net.tcp.TcpServer;
-import core.fire.rpc.RPCServer;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelOutboundHandler;
 
@@ -35,7 +34,6 @@ public class Launcher implements Component
     protected TcpServer tcpServer;
     protected HttpServer httpServer;
     protected HttpDispatcher httpDispatcher;
-    protected RPCServer rpcServer;
     // ---------------------------------//
 
     /**
@@ -53,16 +51,14 @@ public class Launcher implements Component
     private void initializeComponent() {
         timer = new Timer();
 
-        tcpDispatcher = new TcpDispatcher(config);
+        tcpDispatcher = new TcpDispatcher(config.getTcpHandlerScanPackages(), config.getTcpInterceptorScanPackages());
         NettyHandler netHandler = new NettyHandler(tcpDispatcher);
         CodecFactory codecFactory = getCodecFactory();
         NettyChannelInitializer channelInitializer = new NettyChannelInitializer(netHandler, codecFactory);
-        tcpServer = new TcpServer(channelInitializer, config);
+        tcpServer = new TcpServer(channelInitializer, config.getTcpPort());
 
-        httpDispatcher = new HttpDispatcher(config);
-        httpServer = new HttpServer(httpDispatcher, config);
-
-        rpcServer = new RPCServer(config);
+        httpDispatcher = new HttpDispatcher(config.getHttpHandlerScanPackages());
+        httpServer = new HttpServer(httpDispatcher, config.getHttpPort());
     }
 
     /**
