@@ -14,7 +14,7 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 
 /**
- * An implementation of hashmap which key is primitive int. Null value is not
+ * An implementation of hashmap whose key is primitive int. Null value is not
  * allowed. Notice that its not thread safe.
  * 
  * <p>
@@ -350,7 +350,7 @@ public class IntHashMap<V>
         }
 
         public final Spliterator<V> spliterator() {
-            throw new UnsupportedOperationException();
+            return new ValueSpliterator<>(IntHashMap.this, 0, -1, 0);
         }
 
         public final void forEach(Consumer<? super V> action) {
@@ -363,6 +363,97 @@ public class IntHashMap<V>
                         action.accept(e.value);
                 }
             }
+        }
+    }
+
+    static final class ValueSpliterator<V> extends IntHashMapSpliterator<V> implements Spliterator<V>
+    {
+        ValueSpliterator(IntHashMap<V> m, int origin, int fence, int est) {
+            super(m, origin, fence, est);
+        }
+
+        public ValueSpliterator<V> trySplit() {
+            int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
+            return (lo >= mid || current != null) ? null : new ValueSpliterator<>(map, lo, index = mid, est >>>= 1);
+        }
+
+        public void forEachRemaining(Consumer<? super V> action) {
+            int i, hi;
+            if (action == null)
+                throw new NullPointerException();
+            IntHashMap<V> m = map;
+            Entry<V>[] tab = m.table;
+            if ((hi = fence) < 0) {
+                hi = fence = (tab == null) ? 0 : tab.length;
+            }
+            if (tab != null && tab.length >= hi && (i = index) >= 0 && (i < (index = hi) || current != null)) {
+                Entry<V> p = current;
+                current = null;
+                do {
+                    if (p == null)
+                        p = tab[i++];
+                    else {
+                        action.accept(p.value);
+                        p = p.next;
+                    }
+                } while (p != null || i < hi);
+            }
+        }
+
+        public boolean tryAdvance(Consumer<? super V> action) {
+            int hi;
+            if (action == null)
+                throw new NullPointerException();
+            Entry<V>[] tab = map.table;
+            if (tab != null && tab.length >= (hi = getFence()) && index >= 0) {
+                while (current != null || index < hi) {
+                    if (current == null)
+                        current = tab[index++];
+                    else {
+                        V v = current.value;
+                        current = current.next;
+                        action.accept(v);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public int characteristics() {
+            return (fence < 0 || est == map.size ? Spliterator.SIZED : 0);
+        }
+    }
+
+    static class IntHashMapSpliterator<V>
+    {
+        final IntHashMap<V> map;
+        Entry<V> current; // current node
+        int index; // current index, modified on advance/split
+        int fence; // one past last index
+        int est; // size estimate
+
+        IntHashMapSpliterator(IntHashMap<V> m, int origin, int fence, int est) {
+            this.map = m;
+            this.index = origin;
+            this.fence = fence;
+            this.est = est;
+        }
+
+        final int getFence() { // initialize fence and size on first use
+            int hi;
+            if ((hi = fence) < 0) {
+                IntHashMap<V> m = map;
+                est = m.size;
+                Entry<V>[] tab = m.table;
+                hi = fence = (tab == null) ? 0 : tab.length;
+            }
+            return hi;
+        }
+
+        public final long estimateSize() {
+            getFence(); // force init
+            return (long) est;
         }
     }
 
