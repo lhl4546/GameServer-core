@@ -10,6 +10,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
+
 import core.fire.Component;
 import core.fire.net.http.HttpHandler;
 import core.fire.util.ClassUtil;
@@ -39,21 +41,22 @@ public class RpcDispatcher implements HttpHandler, Component
 
     @Override
     public void handle(Channel channel, Map<String, List<String>> parameter) {
-        List<String> methodName = parameter.get("methodname");
-        if (Util.isNullOrEmpty(methodName)) {
-            LOG.warn("No methodname found in querystring, close the channel");
+        List<String> requestString = parameter.get("request");
+        if (Util.isNullOrEmpty(requestString)) {
+            LOG.warn("No request found in querystring, close the channel");
             channel.close();
             return;
         }
 
-        RpcHandler<?> handler = handlerMap.get(methodName.get(0));
+        RpcRequest request = JSON.parseObject(requestString.get(0), RpcRequest.class);
+        RpcHandler<?> handler = handlerMap.get(request.getMethodName());
         if (handler == null) {
-            LOG.warn("No handler found for method {}, close the channel", methodName.get(0));
+            LOG.warn("No handler found for method {}, close the channel", request.getMethodName());
             channel.close();
             return;
         }
 
-        handler.handle(channel, parameter);
+        handler.handle(channel, request);
     }
 
     /**
@@ -91,7 +94,7 @@ public class RpcDispatcher implements HttpHandler, Component
      * @param handler RPC处理器
      */
     public void addHandler(String methodName, RpcHandler<?> handler) {
-        HttpHandler oldHandler = handlerMap.put(methodName, handler);
+        RpcHandler<?> oldHandler = handlerMap.put(methodName, handler);
         if (oldHandler != null) {
             throw new IllegalStateException("Duplicate handler for method " + methodName + ", old: " + oldHandler.getClass().getName() + ", new: " + handler.getClass().getName());
         }

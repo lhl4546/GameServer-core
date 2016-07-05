@@ -3,6 +3,8 @@
  */
 package core.fire.rpc.json.server;
 
+import com.alibaba.fastjson.JSON;
+
 /**
  * RPC请求包装器，封装RPC基本参数与调用方参数
  * 
@@ -42,15 +44,8 @@ public class RpcRequest
         this.methodParams = methodParams;
     }
 
-    /**
-     * 转换成HTTP请求参数格式
-     */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("id=").append(id);
-        sb.append("&methodname=").append(methodName);
-        sb.append("&methodparams=").append(methodParams);
-        return sb.toString();
+        return JSON.toJSONString(this);
     }
 }

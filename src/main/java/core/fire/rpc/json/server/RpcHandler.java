@@ -6,13 +6,8 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
-import java.util.List;
-import java.util.Map;
-
 import com.alibaba.fastjson.JSON;
 
-import core.fire.net.http.HttpHandler;
-import core.fire.util.Util;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -27,24 +22,20 @@ import io.netty.util.AttributeKey;;
  *
  * @param <T> 请求参数类型
  */
-public abstract class RpcHandler<T> implements HttpHandler
+public abstract class RpcHandler<T>
 {
     static final AttributeKey<Long> ID = AttributeKey.valueOf("ID");
 
-    @Override
-    public void handle(Channel channel, Map<String, List<String>> parameter) {
-        List<String> params = parameter.get("methodparams");
-        if (!Util.isNullOrEmpty(params)) {
-            String theOnlyParam = params.get(0);
-            T paramObject = null;
-            try {
-                paramObject = JSON.parseObject(theOnlyParam, getParamProtoType());
-            } catch (Exception e) {
-                throw new RuntimeException("Can not parse " + theOnlyParam + " to " + getParamProtoType());
-            }
-            channel.attr(ID).set(Long.parseLong(parameter.get("id").get(0)));
-            handle(channel, paramObject);
+    public void handle(Channel channel, RpcRequest request) {
+        String methodParam = request.getMethodParams();
+        T paramObject = null;
+        try {
+            paramObject = JSON.parseObject(methodParam, getParamProtoType());
+        } catch (Exception e) {
+            throw new RuntimeException("Can not parse " + methodParam + " to " + getParamProtoType());
         }
+        channel.attr(ID).set(request.getId());
+        handle(channel, paramObject);
     }
 
     /**
