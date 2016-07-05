@@ -17,7 +17,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpResponse;;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.util.AttributeKey;;
 
 /**
  * RPC处理器基类，实现了基本的请求参数转换以及应答数据发送方法
@@ -28,7 +29,7 @@ import io.netty.handler.codec.http.FullHttpResponse;;
  */
 public abstract class RpcHandler<T> implements HttpHandler
 {
-    private Channel channel;
+    static final AttributeKey<Long> ID = AttributeKey.valueOf("ID");
 
     @Override
     public void handle(Channel channel, Map<String, List<String>> parameter) {
@@ -41,22 +42,26 @@ public abstract class RpcHandler<T> implements HttpHandler
             } catch (Exception e) {
                 throw new RuntimeException("Can not parse " + theOnlyParam + " to " + getParamProtoType());
             }
-            this.channel = channel;
-            handle(paramObject);
+            channel.attr(ID).set(Long.parseLong(parameter.get("id").get(0)));
+            handle(channel, paramObject);
         }
     }
 
     /**
      * 以text/plain格式发送应答信息。发送完毕后将会关闭连接
      * 
+     * @param channel
      * @param message 应答数据
      */
-    protected void sendError(String message) {
-        ByteBuf buf = Unpooled.copiedBuffer(message.getBytes());
-        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, buf);
-        response.headers().set(CONTENT_TYPE, "text/plain");
-        response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
-        channel.writeAndFlush(response).addListener(CLOSE);
+    protected void sendResponse(Channel channel, String message) {
+        RpcResponse response = new RpcResponse();
+        response.setId(channel.attr(ID).get());
+        response.setData(message);
+        ByteBuf buf = Unpooled.copiedBuffer(response.toString().getBytes());
+        FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, buf);
+        httpResponse.headers().set(CONTENT_TYPE, "text/plain");
+        httpResponse.headers().set(CONTENT_LENGTH, httpResponse.content().readableBytes());
+        channel.writeAndFlush(httpResponse).addListener(CLOSE);
     }
 
     /**
@@ -67,7 +72,8 @@ public abstract class RpcHandler<T> implements HttpHandler
     /**
      * 处理请求
      * 
+     * @param channel
      * @param param
      */
-    protected abstract void handle(T param);
+    protected abstract void handle(Channel channel, T param);
 }
