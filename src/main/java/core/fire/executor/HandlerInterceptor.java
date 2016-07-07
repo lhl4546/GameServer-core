@@ -20,7 +20,7 @@ public interface HandlerInterceptor extends Comparable<HandlerInterceptor>
     boolean preHandle(SocketRequest request);
 
     /**
-     * @return order值越大排名越低
+     * @return order值越大排名越低，默认值为0
      */
     default int getOrder() {
         return 0;

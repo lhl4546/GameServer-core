@@ -68,7 +68,7 @@ public class Packet implements Dumpable
     }
 
     @Override
-    public String errorDump() {
+    public String dump() {
         return "Packet: [code = " + code + ", length = " + length + ", body = " + Arrays.toString(body) + "]";
     }
 

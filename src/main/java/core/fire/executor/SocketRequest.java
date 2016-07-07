@@ -22,6 +22,7 @@ public class SocketRequest implements Dumpable
     private Packet packet;
     private Object requestParameter;
     private Object user;
+    private GeneratedMessage prototype;
 
     public SocketRequest(Channel channel, Packet packet) {
         this.channel = channel;
@@ -84,6 +85,24 @@ public class SocketRequest implements Dumpable
     }
 
     /**
+     * 获取PB参数原型
+     * 
+     * @return
+     */
+    public GeneratedMessage getPrototype() {
+        return prototype;
+    }
+
+    /**
+     * 设置PB参数原型
+     * 
+     * @param prototype
+     */
+    public void setPrototype(GeneratedMessage prototype) {
+        this.prototype = prototype;
+    }
+
+    /**
      * 发送应答。应答packet与请求使用相同指令
      * 
      * @param message
@@ -114,8 +133,8 @@ public class SocketRequest implements Dumpable
     }
 
     @Override
-    public String errorDump() {
-        return "SocketRequest: [channel=" + channel + ", packet=" + packet.errorDump() + "]";
+    public String dump() {
+        return "SocketRequest: [channel=" + channel + ", packet=" + packet.dump() + "]";
     }
 
     @Override

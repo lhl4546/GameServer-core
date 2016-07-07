@@ -92,6 +92,7 @@ public final class TcpDispatcher implements Component
         }
 
         SocketRequest request = new SocketRequest(channel, packet);
+        request.setPrototype(getParamType(packet.code));
         RunnableTask task = new RunnableTask(request, handler);
 
         Sequence sequence = channel.attr(SEQUENCE_KEY).get();
@@ -265,7 +266,7 @@ public final class TcpDispatcher implements Component
                 // 处理
                 handler.handle(request);
             } catch (Throwable t) {
-                LOG.error("{}", errorDump(), t);
+                LOG.error("{}", dump(), t);
             }
         }
 
@@ -275,8 +276,8 @@ public final class TcpDispatcher implements Component
         }
 
         @Override
-        public String errorDump() {
-            return "RunnableTask: [request=" + request.errorDump() + "]";
+        public String dump() {
+            return "RunnableTask: [request=" + request.dump() + "]";
         }
     }
 }

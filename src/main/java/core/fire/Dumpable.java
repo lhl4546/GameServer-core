@@ -17,5 +17,5 @@ public interface Dumpable
      * 
      * @return
      */
-    String errorDump();
+    String dump();
 }
