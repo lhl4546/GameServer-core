@@ -1,8 +1,13 @@
 package core.fire.executor;
 
+import com.google.protobuf.GeneratedMessage;
+import com.google.protobuf.Message;
+
 import core.fire.Dumpable;
 import core.fire.net.tcp.Packet;
 import io.netty.channel.Channel;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 
 /**
  * TCP请求，封装了一系列TCP请求相关的数据。
@@ -24,12 +29,13 @@ public class SocketRequest implements Dumpable
     }
 
     /**
-     * 网络连接
+     * 获取关联属性
      * 
-     * @return
+     * @param key
+     * @return 不会返回null
      */
-    public Channel getChannel() {
-        return channel;
+    public <T> Attribute<T> attr(AttributeKey<T> key) {
+        return channel.attr(key);
     }
 
     /**
@@ -75,6 +81,36 @@ public class SocketRequest implements Dumpable
      */
     public void setUser(Object user) {
         this.user = user;
+    }
+
+    /**
+     * 发送应答。应答packet与请求使用相同指令
+     * 
+     * @param message
+     */
+    public <T extends Message> void sendResponse(T message) {
+        if (message != null) {
+            packet.body = message.toByteArray();
+            packet.length = (short) packet.body.length;
+        }
+        packet.length = Packet.HEAD_SIZE;
+        channel.writeAndFlush(packet);
+    }
+
+    /**
+     * 发送应答。应答packet与请求使用相同指令
+     * 
+     * @param builder
+     */
+    public <T extends GeneratedMessage.Builder<?>> void sendResponse(T builder) {
+        sendResponse(builder.build());
+    }
+
+    /**
+     * 发送空负载(只有包头)应答。应答packet与请求使用相同指令
+     */
+    public void sendResponse() {
+        sendResponse((Message) null);
     }
 
     @Override

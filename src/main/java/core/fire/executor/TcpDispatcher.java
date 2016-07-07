@@ -92,8 +92,7 @@ public final class TcpDispatcher implements Component
         }
 
         SocketRequest request = new SocketRequest(channel, packet);
-        SocketResponse response = new SocketResponse(channel);
-        RunnableTask task = new RunnableTask(request, response, handler);
+        RunnableTask task = new RunnableTask(request, handler);
 
         Sequence sequence = channel.attr(SEQUENCE_KEY).get();
         if (sequence != null) {
@@ -244,12 +243,10 @@ public final class TcpDispatcher implements Component
     class RunnableTask implements Runnable, Dumpable
     {
         SocketRequest request;
-        SocketResponse response;
         Handler handler;
 
-        RunnableTask(SocketRequest request, SocketResponse response, Handler handler) {
+        RunnableTask(SocketRequest request, Handler handler) {
             this.request = request;
-            this.response = response;
             this.handler = handler;
         }
 
@@ -260,13 +257,13 @@ public final class TcpDispatcher implements Component
                 HandlerInterceptor[] interceptors = TcpDispatcher.this.interceptors;
                 for (int i = 0; i < interceptors.length; i++) {
                     HandlerInterceptor interceptor = interceptors[i];
-                    if (!interceptor.preHandle(request, response)) {
+                    if (!interceptor.preHandle(request)) {
                         return;
                     }
                 }
 
                 // 处理
-                handler.handle(request, response);
+                handler.handle(request);
             } catch (Throwable t) {
                 LOG.error("{}", errorDump(), t);
             }
@@ -274,12 +271,12 @@ public final class TcpDispatcher implements Component
 
         @Override
         public String toString() {
-            return "RunnableTask: [request=" + request + ", response=" + response + "]";
+            return "RunnableTask: [request=" + request + "]";
         }
 
         @Override
         public String errorDump() {
-            return "RunnableTask: [request=" + request.errorDump() + ", response=" + response.errorDump() + "]";
+            return "RunnableTask: [request=" + request.errorDump() + "]";
         }
     }
 }

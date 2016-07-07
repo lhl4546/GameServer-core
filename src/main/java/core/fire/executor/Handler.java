@@ -14,7 +14,6 @@ public interface Handler
 {
     /**
      * @param request
-     * @param response
      */
-    void handle(SocketRequest request, SocketResponse response);
+    void handle(SocketRequest request);
 }

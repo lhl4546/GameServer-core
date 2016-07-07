@@ -15,10 +15,9 @@ public interface HandlerInterceptor extends Comparable<HandlerInterceptor>
      * 在协议被处理前实施拦截
      * 
      * @param request
-     * @param response
      * @return 返回true表示拦截完成，可以继续下个操作，返回false表明拦截完成，但不能继续处理该请求
      */
-    boolean preHandle(SocketRequest request, SocketResponse response);
+    boolean preHandle(SocketRequest request);
 
     /**
      * @return order值越大排名越低
