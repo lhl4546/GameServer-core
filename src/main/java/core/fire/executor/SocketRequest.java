@@ -30,7 +30,7 @@ public class SocketRequest implements Dumpable
     }
 
     /**
-     * 获取关联属性
+     * 关联属性
      * 
      * @param key
      * @return 不会返回null
