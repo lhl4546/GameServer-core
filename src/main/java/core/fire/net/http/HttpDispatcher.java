@@ -103,7 +103,7 @@ public class HttpDispatcher implements Component, HttpHandler
      * @param searchPackage 搜索包名，多个包名使用逗号分割
      * @throws Exception
      */
-    private void loadHandler(String searchPackage) throws Exception {
+    protected void loadHandler(String searchPackage) throws Exception {
         if (Util.isNullOrEmpty(searchPackage)) {
             return;
         }
