@@ -139,7 +139,9 @@ public class HttpDispatcher implements Component, HttpHandler
 
     @Override
     public void stop() throws Exception {
-        executor.shutdownNow();
+        if (executor != null) {
+            executor.shutdownNow();
+        }
         LOG.debug("HttpDispatcher stop");
     }
 }

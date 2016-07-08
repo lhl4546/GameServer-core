@@ -15,7 +15,11 @@
  */
 package core.fire.net.http;
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,12 +28,18 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.Attribute;
@@ -67,7 +77,7 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter
             ctx.channel().attr(KEY_PATH).set(uri.getPath());
 
             if (req.getMethod().equals(HttpMethod.GET)) {
-                QueryStringDecoder decoder = new QueryStringDecoder(URI.create(req.getUri()));
+                QueryStringDecoder decoder = new QueryStringDecoder(URLDecoder.decode(req.getUri(), "UTF8"));
                 Map<String, List<String>> parameter = decoder.parameters();
                 dispatch(ctx.channel(), parameter);
                 return;
@@ -127,6 +137,20 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         LOG.error("", cause);
-        ctx.close();
+        sendError(ctx.channel(), cause.getMessage(), HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * 发送应答信息。发送完毕后将会关闭连接
+     * 
+     * @param channel
+     * @param message 描述信息
+     * @param status HTTP状态码
+     */
+    private void sendError(Channel channel, String message, HttpResponseStatus status) {
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(message.getBytes()));
+        response.headers().set(CONTENT_TYPE, "text/plain");
+        response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
+        channel.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 }

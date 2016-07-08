@@ -3,6 +3,7 @@
  */
 package core.fire.net.tcp;
 
+import core.fire.executor.TcpDispatcher;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -28,5 +29,9 @@ public class NettyChannelInitializer extends ChannelInitializer<Channel>
         pipeline.addLast("ENCODER", codecFactory.getEncoder());
         pipeline.addLast("DECODER", codecFactory.getDecoder());
         pipeline.addLast("NET_HANDLER", netHandler);
+    }
+    
+    public TcpDispatcher getDispatcher() {
+        return netHandler.getDispatcher();
     }
 }

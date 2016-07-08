@@ -27,9 +27,11 @@ public class HttpServer implements Component
     private EventLoopGroup childgroup;
     private Channel serverSocket;
     private HttpServerInitializer initializer;
+    private HttpDispatcher dispatcher;
     private int port;
 
     public HttpServer(HttpDispatcher dispatcher, int port) {
+        this.dispatcher = dispatcher;
         HttpServerInitializer initializer = new HttpServerInitializer(dispatcher);
         this.initializer = initializer;
         this.port = port;
@@ -41,6 +43,7 @@ public class HttpServer implements Component
 
     @Override
     public void start() throws Exception {
+        dispatcher.start();
         bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(initializer).childOption(ChannelOption.SO_LINGER, 0).childOption(ChannelOption.TCP_NODELAY, true);
         serverSocket = bootstrap.bind(port).sync().channel();
@@ -58,6 +61,7 @@ public class HttpServer implements Component
         if (childgroup != null) {
             childgroup.shutdownGracefully();
         }
+        dispatcher.stop();
         LOG.debug("Http server stop");
     }
 }

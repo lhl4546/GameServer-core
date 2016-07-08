@@ -47,4 +47,8 @@ public class NettyHandler extends SimpleChannelInboundHandler<Packet>
     protected void channelRead0(ChannelHandlerContext ctx, Packet msg) throws Exception {
         dispatcher.handle(ctx.channel(), msg);
     }
+    
+    public TcpDispatcher getDispatcher() {
+        return dispatcher;
+    }
 }
