@@ -8,7 +8,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -17,8 +16,8 @@ import org.slf4j.LoggerFactory;
 import com.google.protobuf.GeneratedMessage;
 
 import core.fire.Component;
+import core.fire.CoreServer;
 import core.fire.Dumpable;
-import core.fire.NamedThreadFactory;
 import core.fire.net.tcp.Packet;
 import core.fire.util.ClassUtil;
 import core.fire.util.IntHashMap;
@@ -58,19 +57,12 @@ public final class TcpDispatcher implements Component
     public static final AttributeKey<Sequence> SEQUENCE_KEY = AttributeKey.valueOf("SEQUENCE_KEY");
     // 请求拦截器
     private HandlerInterceptor[] interceptors;
+    //
+    private CoreServer core;
 
-    private String handlerScanPackages;
-    private String interceptorScanPackages;
-
-    public TcpDispatcher(String handlerScanPackages, String interceptorScanPackages) {
-        this.handlerScanPackages = handlerScanPackages;
-        this.interceptorScanPackages = interceptorScanPackages;
-        initLogicThreadPool();
-    }
-
-    private void initLogicThreadPool() {
-        int threads = Runtime.getRuntime().availableProcessors();
-        this.executor = Executors.newFixedThreadPool(threads, new NamedThreadFactory("logic"));
+    public TcpDispatcher(CoreServer core) {
+        this.core = core;
+        this.executor = core.getExecutor();
     }
 
     public void handle(Channel channel, Packet packet) {
@@ -113,19 +105,10 @@ public final class TcpDispatcher implements Component
         return requestParamType.get(code);
     }
 
-    /**
-     * 生成消息队列
-     * 
-     * @return
-     */
-    public Sequence newSequence() {
-        return new Sequence(executor);
-    }
-
     @Override
     public void start() throws Exception {
-        loadHandler(handlerScanPackages);
-        loadInterceptor(interceptorScanPackages);
+        loadHandler(core.getTcpHandlerScanPath());
+        loadInterceptor(core.getTcpInterceptorScanPath());
         LOG.debug("DispatcherHandler start");
     }
 

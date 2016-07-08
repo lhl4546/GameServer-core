@@ -1,9 +1,12 @@
 package core.fire.net.http;
 
+import java.net.SocketAddress;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
+import core.fire.CoreServer;
 import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -28,13 +31,13 @@ public class HttpServer implements Component
     private Channel serverSocket;
     private HttpServerInitializer initializer;
     private HttpDispatcher dispatcher;
-    private int port;
+    private SocketAddress address;
 
-    public HttpServer(HttpDispatcher dispatcher, int port) {
-        this.dispatcher = dispatcher;
+    public HttpServer(CoreServer core) {
+        this.dispatcher = new HttpDispatcher(core);
         HttpServerInitializer initializer = new HttpServerInitializer(dispatcher);
         this.initializer = initializer;
-        this.port = port;
+        this.address = core.getHttpAddress();
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("http-acceptor"));
         int netioThreads = Runtime.getRuntime().availableProcessors();
         this.childgroup = new NioEventLoopGroup(netioThreads, new NamedThreadFactory("http"));
@@ -46,8 +49,8 @@ public class HttpServer implements Component
         dispatcher.start();
         bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(initializer).childOption(ChannelOption.SO_LINGER, 0).childOption(ChannelOption.TCP_NODELAY, true);
-        serverSocket = bootstrap.bind(port).sync().channel();
-        LOG.debug("Http server start listen on port {}", port);
+        serverSocket = bootstrap.bind(address).sync().channel();
+        LOG.debug("Http server start listen on {}", address);
     }
 
     @Override

@@ -3,10 +3,13 @@
  */
 package core.fire.net.tcp;
 
+import java.net.SocketAddress;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
+import core.fire.CoreServer;
 import core.fire.NamedThreadFactory;
 import core.fire.executor.TcpDispatcher;
 import io.netty.bootstrap.ServerBootstrap;
@@ -33,18 +36,14 @@ public class TcpServer implements Component
     private Channel serverSocket;
     private NettyChannelInitializer channelInitializer;
     private TcpDispatcher dispatcher;
-    private int port;
+    private SocketAddress address;
 
-    /**
-     * @param channelInitializer
-     * @param port
-     */
-    public TcpServer(NettyChannelInitializer channelInitializer, int port) {
-        this.dispatcher = channelInitializer.getDispatcher();
-        this.channelInitializer = channelInitializer;
-        this.port = port;
+    public TcpServer(CoreServer core) {
+        this.dispatcher = new TcpDispatcher(core);
+        this.channelInitializer = new NettyChannelInitializer(dispatcher, core.getCodecFactory());
+        this.address = core.getTcpAddress();
         this.bootstrap = new ServerBootstrap();
-        this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("ACCEPTOR"));
+        this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("acceptor"));
         int netiothreads = Runtime.getRuntime().availableProcessors();
         this.childgroup = new NioEventLoopGroup(netiothreads, new NamedThreadFactory("socket"));
     }
@@ -54,9 +53,9 @@ public class TcpServer implements Component
         dispatcher.start();
         bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(channelInitializer).option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_LINGER, 0)
                 .childOption(ChannelOption.TCP_NODELAY, true);
-        ChannelFuture future = bootstrap.bind(port);
+        ChannelFuture future = bootstrap.bind(address);
         serverSocket = future.sync().channel();
-        LOG.debug("NettyServer start listen on port {}", port);
+        LOG.debug("NettyServer start listen on {}", address);
     }
 
     @Override

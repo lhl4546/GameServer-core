@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
+import core.fire.CoreServer;
 import core.fire.util.ClassUtil;
 import core.fire.util.Util;
 import io.netty.buffer.Unpooled;
@@ -35,25 +36,14 @@ public class HttpDispatcher implements Component, HttpHandler
     private static final Logger LOG = LoggerFactory.getLogger(HttpDispatcher.class);
     // 请求处理器映射，key=uri
     private Map<String, HttpHandler> handlerMap = new HashMap<>();
-    // 请求处理器扫描包，多个包使用英文逗号分隔
-    private String handlerScanPackages;
     // 请求处理线程池
     private ExecutorService executor;
+    // 
+    private CoreServer core;
 
-    /**
-     * @param handleScanPackages 请求扫描包，多个包使用英文逗号分隔
-     */
-    public HttpDispatcher(String handleScanPackages) {
-        this.handlerScanPackages = handleScanPackages;
-    }
-
-    /**
-     * @param handlerScanPackages 请求扫描包，多个包使用英文逗号分隔
-     * @param executor 请求将提交给这个线程池处理
-     */
-    public HttpDispatcher(String handlerScanPackages, ExecutorService executor) {
-        this.handlerScanPackages = handlerScanPackages;
-        this.executor = executor;
+    public HttpDispatcher(CoreServer core) {
+        this.core = core;
+        this.executor = core.getHttpExecutor();
     }
 
     @Override
@@ -93,7 +83,7 @@ public class HttpDispatcher implements Component, HttpHandler
 
     @Override
     public void start() throws Exception {
-        loadHandler(handlerScanPackages);
+        loadHandler(core.getHttpHandlerScanPath());
         LOG.debug("HttpDispatcher start");
     }
 

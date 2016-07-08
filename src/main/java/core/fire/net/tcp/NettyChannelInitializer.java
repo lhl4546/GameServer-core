@@ -18,8 +18,8 @@ public class NettyChannelInitializer extends ChannelInitializer<Channel>
     private NettyHandler netHandler;
     private CodecFactory codecFactory;
 
-    public NettyChannelInitializer(NettyHandler netHandler, CodecFactory codecFactory) {
-        this.netHandler = netHandler;
+    public NettyChannelInitializer(TcpDispatcher dispatcher, CodecFactory codecFactory) {
+        this.netHandler = new NettyHandler(dispatcher);
         this.codecFactory = codecFactory;
     }
 
@@ -29,9 +29,5 @@ public class NettyChannelInitializer extends ChannelInitializer<Channel>
         pipeline.addLast("ENCODER", codecFactory.getEncoder());
         pipeline.addLast("DECODER", codecFactory.getDecoder());
         pipeline.addLast("NET_HANDLER", netHandler);
-    }
-    
-    public TcpDispatcher getDispatcher() {
-        return netHandler.getDispatcher();
     }
 }
