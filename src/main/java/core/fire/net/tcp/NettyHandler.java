@@ -35,8 +35,8 @@ public class NettyHandler extends SimpleChannelInboundHandler<Packet>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LOG.debug("Exception caught: {}", ctx.channel().remoteAddress(), cause);
-        ctx.channel().close();
+        LOG.debug("", cause);
+        ctx.close();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class NettyHandler extends SimpleChannelInboundHandler<Packet>
     protected void channelRead0(ChannelHandlerContext ctx, Packet msg) throws Exception {
         dispatcher.handle(ctx.channel(), msg);
     }
-    
+
     public TcpDispatcher getDispatcher() {
         return dispatcher;
     }
