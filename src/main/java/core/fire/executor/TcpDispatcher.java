@@ -84,7 +84,6 @@ public final class TcpDispatcher implements Component
         }
 
         SocketRequest request = new SocketRequest(channel, packet);
-        request.setPrototype(getParamType(packet.code));
         RunnableTask task = new RunnableTask(request, handler);
 
         Sequence sequence = channel.attr(SEQUENCE_KEY).get();
@@ -194,7 +193,7 @@ public final class TcpDispatcher implements Component
         });
 
         // 默认注册参数类型拦截器
-        interceptorList.add(new ParameterTypeInterceptor());
+        interceptorList.add(new ParameterTypeInterceptor(this));
         interceptorList.sort(null);
         LOG.debug("After sort, handler interceptor list is {}", interceptorList);
         this.interceptors = interceptorList.toArray(new HandlerInterceptor[interceptorList.size()]);

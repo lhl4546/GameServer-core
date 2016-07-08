@@ -2,8 +2,6 @@ package core.fire.executor;
 
 import com.google.protobuf.GeneratedMessage;
 
-import core.fire.executor.HandlerInterceptor;
-import core.fire.executor.SocketRequest;
 import core.fire.net.tcp.Packet;
 
 /**
@@ -15,11 +13,17 @@ import core.fire.net.tcp.Packet;
  */
 public class ParameterTypeInterceptor implements HandlerInterceptor
 {
+    private TcpDispatcher dispatcher;
+    
+    public ParameterTypeInterceptor(TcpDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
+    
     @Override
     public boolean preHandle(SocketRequest request) {
         Packet packet = request.getPacket();
         if (packet.body != null) {
-            GeneratedMessage paramType = request.getPrototype();
+            GeneratedMessage paramType = dispatcher.getParamType(request.getPacket().code);
             Object requestParameter = packet.toProto(paramType);
             request.setRequestParameter(requestParameter);
         }

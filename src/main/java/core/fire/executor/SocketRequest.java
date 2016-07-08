@@ -22,7 +22,6 @@ public class SocketRequest implements Dumpable
     private Packet packet;
     private Object requestParameter;
     private Object user;
-    private GeneratedMessage prototype;
 
     public SocketRequest(Channel channel, Packet packet) {
         this.channel = channel;
@@ -58,21 +57,23 @@ public class SocketRequest implements Dumpable
     }
 
     /**
-     * 请求参数
+     * 请求参数，支持返回GeneratedMessage子类型
      * 
      * @return 返回null表示该请求没有参数
      */
-    public Object getRequestParameter() {
-        return requestParameter;
+    @SuppressWarnings("unchecked")
+    public <ParamType> ParamType getRequestParameter() {
+        return (ParamType) requestParameter;
     }
 
     /**
-     * 经过身份验证的用户
+     * 经过身份验证的用户，支持返回自定义用户类型(与setUser的参数类型保持一致)
      * 
      * @return 返回null表示连接未经过身份验证
      */
-    public Object getUser() {
-        return user;
+    @SuppressWarnings("unchecked")
+    public <UserType> UserType getUser() {
+        return (UserType) user;
     }
 
     /**
@@ -85,24 +86,6 @@ public class SocketRequest implements Dumpable
     }
 
     /**
-     * 获取PB参数原型
-     * 
-     * @return
-     */
-    public GeneratedMessage getPrototype() {
-        return prototype;
-    }
-
-    /**
-     * 设置PB参数原型
-     * 
-     * @param prototype
-     */
-    public void setPrototype(GeneratedMessage prototype) {
-        this.prototype = prototype;
-    }
-
-    /**
      * 发送应答。应答packet与请求使用相同指令
      * 
      * @param message
@@ -112,7 +95,7 @@ public class SocketRequest implements Dumpable
             packet.body = message.toByteArray();
             packet.length = (short) packet.body.length;
         }
-        packet.length = Packet.HEAD_SIZE;
+        packet.length += Packet.HEAD_SIZE;
         channel.writeAndFlush(packet);
     }
 
