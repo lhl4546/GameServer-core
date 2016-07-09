@@ -263,8 +263,72 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     // JDBC operation ------------------------
-    protected JdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
+    /**
+     * 自定义SELECT
+     * 
+     * @param sql
+     * @param args
+     * @return 返回单个实体
+     */
+    protected T query(String sql, Object[] args) {
+        Timer timer = Timer.start();
+        try {
+            return jdbcTemplate.query(sql, args, beanExtrator);
+        } finally {
+            timer.end();
+            getLogger().debug("Table {}.query, time = {} ms", tableName, timer.get());
+        }
+    }
+
+    /**
+     * 自定义SELECT
+     * 
+     * @param sql
+     * @param args
+     * @param extractor
+     * @return 返回自定义类型
+     */
+    protected <P> P query(String sql, Object[] args, ResultSetExtractor<P> extractor) {
+        Timer timer = Timer.start();
+        try {
+            return jdbcTemplate.query(sql, args, extractor);
+        } finally {
+            timer.end();
+            getLogger().debug("Table {}.query, time = {} ms", tableName, timer.get());
+        }
+    }
+
+    /**
+     * 自定义SELECT
+     * 
+     * @param sql
+     * @param args
+     * @return 返回实体列表
+     */
+    protected List<T> queryList(String sql, Object[] args) {
+        Timer timer = Timer.start();
+        try {
+            return jdbcTemplate.query(sql, args, beanListExtractor);
+        } finally {
+            timer.end();
+            getLogger().debug("Table {}.queryList, time = {} ms", tableName, timer.get());
+        }
+    }
+
+    /**
+     * 自定义INSERT、UPDATE、DELETE
+     * 
+     * @param sql
+     * @param args
+     */
+    protected void update(String sql, Object[] args) {
+        Timer timer = Timer.start();
+        try {
+            jdbcTemplate.update(sql, args);
+        } finally {
+            timer.end();
+            getLogger().debug("Table {}.update, time = {} ms", tableName, timer.get());
+        }
     }
 
     @Override
@@ -272,7 +336,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         Timer timer = Timer.start();
         String sql = sql_insert;
         Object[] param = getInsertParam(t);
-        getJdbcTemplate().update(sql, param);
+        jdbcTemplate.update(sql, param);
         timer.end();
         getLogger().debug("Table {}.add, time = {} ms", tableName, timer.get());
     }
@@ -281,7 +345,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     public void delete(int primaryKey) {
         Timer timer = Timer.start();
         String sql = sql_delete;
-        getJdbcTemplate().update(sql, new Object[] { primaryKey });
+        jdbcTemplate.update(sql, new Object[] { primaryKey });
         timer.end();
         getLogger().debug("Table {}.delete, time = {} ms", tableName, timer.get());
     }
@@ -291,7 +355,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         Timer timer = Timer.start();
         String sql = sql_update;
         Object[] param = getUpdateParam(t);
-        getJdbcTemplate().update(sql, param);
+        jdbcTemplate.update(sql, param);
         timer.end();
         getLogger().debug("Table {}.update, time = {} ms", tableName, timer.get());
     }
@@ -301,7 +365,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         Timer timer = Timer.start();
         String sql = sql_select_by_primary_key;
         try {
-            return getJdbcTemplate().query(sql, new Object[] { primaryKey }, beanExtrator);
+            return jdbcTemplate.query(sql, new Object[] { primaryKey }, beanExtrator);
         } finally {
             timer.end();
             getLogger().debug("Table {}.get, time = {} ms", tableName, timer.get());
@@ -313,7 +377,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         Timer timer = Timer.start();
         String sql = sql_select_by_second_key;
         try {
-            return getJdbcTemplate().query(sql, new Object[] { secondaryKey }, beanListExtractor);
+            return jdbcTemplate.query(sql, new Object[] { secondaryKey }, beanListExtractor);
         } finally {
             timer.end();
             getLogger().debug("Table {}.getBySecondaryKey, time = {} ms", tableName, timer.get());

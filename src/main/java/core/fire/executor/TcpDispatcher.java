@@ -108,7 +108,7 @@ public final class TcpDispatcher implements Component
     public void start() throws Exception {
         loadHandler(core.getTcpHandlerScanPath());
         loadInterceptor(core.getTcpInterceptorScanPath());
-        LOG.debug("DispatcherHandler start");
+        LOG.debug("TcpDispatcher start");
     }
 
     /**
@@ -222,7 +222,7 @@ public final class TcpDispatcher implements Component
     @Override
     public void stop() {
         Util.shutdownThreadPool(executor, 5 * 1000);
-        LOG.debug("DispatcherHandler stop");
+        LOG.debug("TcpDispatcher stop");
     }
 
     class RunnableTask implements Runnable, Dumpable
