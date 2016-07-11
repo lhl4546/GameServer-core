@@ -20,6 +20,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
 import core.fire.Callback;
+import core.fire.CoreServer;
 
 /**
  * 基于Spring {@linkplain org.springframework.jdbc.core.JdbcTemplate} 和
@@ -58,7 +59,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
-    private DBService dbService;
+    private CoreServer coreServer;
 
     protected BaseDao(Class<T> type) {
         this.type = Objects.requireNonNull(type);
@@ -452,7 +453,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     // 提交任务
     protected void addTask(Runnable task) {
-        dbService.addTask(task);
+        coreServer.getAsyncExecutor().execute(task);
     }
 
     protected abstract Logger getLogger();

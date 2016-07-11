@@ -2,12 +2,30 @@ package core.fire;
 
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import core.fire.executor.Sequence;
 import core.fire.net.tcp.CodecFactory;
+import core.fire.util.Util;
 
 public class CoreServer
 {
+    private int nAsyncThreads = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
+    private ExecutorService asyncExecutor = Executors.newFixedThreadPool(nAsyncThreads, new NamedThreadFactory("async"));
+
+    /**
+     * 获取异步执行线程池
+     * 
+     * @return
+     */
+    public ExecutorService getAsyncExecutor() {
+        return asyncExecutor;
+    }
+
+    public void shutdown() {
+        Util.shutdownThreadPool(asyncExecutor, 5 * 1000);
+    }
+
     /**
      * @return TCP业务执行线程池
      */

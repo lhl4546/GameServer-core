@@ -6,7 +6,7 @@ package core.fire;
 import core.fire.executor.Sequence;
 
 /**
- * 为保证回调逻辑在指定消息队列执行，需要使用{@code AsyncCallback}
+ * 异步回调。为保证回调逻辑在指定消息队列执行，需要使用{@code AsyncCallback}
  * 
  * @author lhl
  *
