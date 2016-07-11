@@ -1,7 +1,7 @@
 /**
  * 
  */
-package core.fire.util;
+package core.fire.collection;
 
 import java.io.Serializable;
 import java.util.AbstractSet;

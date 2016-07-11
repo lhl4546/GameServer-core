@@ -1,7 +1,7 @@
 /**
  * 
  */
-package core.fire.util;
+package core.fire.collection;
 
 import java.util.AbstractCollection;
 import java.util.Iterator;
