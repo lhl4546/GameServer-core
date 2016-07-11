@@ -263,6 +263,10 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     // JDBC operation ------------------------
+    protected JdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+
     /**
      * 自定义SELECT
      * 
