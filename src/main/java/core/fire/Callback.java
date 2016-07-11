@@ -4,7 +4,7 @@
 package core.fire;
 
 /**
- * 回调接口
+ * 回调接口，如果需要保证回调逻辑执行线程请使用{@code AsyncCallback}
  * 
  * @author lhl
  *
@@ -13,29 +13,16 @@ package core.fire;
 public interface Callback
 {
     /**
-     * 异步操作成功时调用
+     * 操作成功时调用
      * 
-     * @param param 异步操作结果
+     * @param param 操作结果
      */
     void onSuccess(Object param);
 
     /**
-     * 异步操作失败时调用
+     * 操作抛出异常时调用
      * 
-     * @param t 异步操作异常
+     * @param t
      */
     void onError(Throwable t);
-
-    /**
-     * 什么也不做的空回调
-     */
-    Callback NO_OP = new Callback() {
-        @Override
-        public void onSuccess(Object param) {
-        }
-
-        @Override
-        public void onError(Throwable t) {
-        }
-    };
 }
