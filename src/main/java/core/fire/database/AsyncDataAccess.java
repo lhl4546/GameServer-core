@@ -18,22 +18,25 @@ public interface AsyncDataAccess<T> extends DataAccess<T>
      * 异步增加一条记录
      * 
      * @param t
+     * @param cb
      */
-    void asyncAdd(T t);
+    void asyncAdd(T t, Callback cb);
 
     /**
      * 异步删除一条记录，根据主键
      * 
      * @param primaryKey
+     * @param cb
      */
-    void asyncDelete(int primaryKey);
+    void asyncDelete(int primaryKey, Callback cb);
 
     /**
      * 异步更新一条记录
      * 
      * @param t
+     * @param cb
      */
-    void asyncUpdate(T t);
+    void asyncUpdate(T t, Callback cb);
 
     /**
      * 异步查询一条记录，根据主键。操作结束后将触发回调

@@ -4,7 +4,7 @@
 package core.fire;
 
 /**
- * 回调接口，如果需要保证回调逻辑执行线程请使用{@code AsyncCallback}
+ * 回调接口，回调逻辑将在执行异步逻辑的线程中执行。如果需要保证回调逻辑在指定线程执行请使用{@code AsyncCallback}
  * 
  * @author lhl
  *
@@ -25,4 +25,17 @@ public interface Callback
      * @param t
      */
     void onError(Throwable t);
+
+    /**
+     * 空回调
+     */
+    Callback NOOP = new Callback() {
+        @Override
+        public void onSuccess(Object param) {
+        }
+
+        @Override
+        public void onError(Throwable t) {
+        }
+    };
 }

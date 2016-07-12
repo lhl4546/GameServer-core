@@ -21,6 +21,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import core.fire.Callback;
 import core.fire.CoreServer;
+import core.fire.executor.Sequence;
 
 /**
  * 基于Spring {@linkplain org.springframework.jdbc.core.JdbcTemplate} 和
@@ -60,6 +61,10 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private CoreServer coreServer;
+
+    // 使用Sequence的目的在于保证同一种类的实体之间的逻辑顺序，避免出现逻辑的执行顺序与提交顺序不一致的问题
+    // 如果同一实体逻辑提交顺序为更改->删除，但是执行顺序变成了删除->更改，这就有问题了
+    private Sequence sequence;
 
     protected BaseDao(Class<T> type) {
         this.type = Objects.requireNonNull(type);
@@ -390,36 +395,42 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     @Override
-    public void asyncAdd(T t) {
+    public void asyncAdd(T t, Callback callback) {
         Runnable task = () -> {
             try {
                 add(t);
+                callback.onSuccess(null);
             } catch (Throwable ex) {
                 getLogger().error("", ex);
+                callback.onError(ex);
             }
         };
         addTask(task);
     }
 
     @Override
-    public void asyncDelete(int primaryKey) {
+    public void asyncDelete(int primaryKey, Callback callback) {
         Runnable task = () -> {
             try {
                 delete(primaryKey);
+                callback.onSuccess(null);
             } catch (Throwable ex) {
                 getLogger().error("", ex);
+                callback.onError(ex);
             }
         };
         addTask(task);
     }
 
     @Override
-    public void asyncUpdate(T t) {
+    public void asyncUpdate(T t, Callback callback) {
         Runnable task = () -> {
             try {
                 update(t);
+                callback.onSuccess(null);
             } catch (Throwable ex) {
                 getLogger().error("", ex);
+                callback.onError(ex);
             }
         };
         addTask(task);
@@ -432,6 +443,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
                 T t = get(primaryKey);
                 cb.onSuccess(t);
             } catch (Throwable e) {
+                getLogger().error("", e);
                 cb.onError(e);
             }
         };
@@ -445,15 +457,27 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
                 List<T> t = getBySecondaryKey(secondaryKey);
                 cb.onSuccess(t);
             } catch (Throwable e) {
+                getLogger().error("", e);
                 cb.onError(e);
             }
         };
         addTask(task);
     }
 
+    private Sequence getSequence() {
+        if (sequence == null) {
+            synchronized (this) {
+                if (sequence == null) {
+                    sequence = new Sequence(coreServer.getAsyncExecutor());
+                }
+            }
+        }
+        return sequence;
+    }
+
     // 提交任务
     protected void addTask(Runnable task) {
-        coreServer.getAsyncExecutor().execute(task);
+        getSequence().addTask(task);
     }
 
     protected abstract Logger getLogger();
