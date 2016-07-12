@@ -19,18 +19,14 @@ import io.netty.channel.SimpleChannelInboundHandler;
  *         2016年1月29日 下午5:36:23
  */
 @Sharable
-public class NettyHandler extends SimpleChannelInboundHandler<Packet>
+public class ServerHandler extends SimpleChannelInboundHandler<Packet>
 {
-    private static final Logger LOG = LoggerFactory.getLogger(NettyHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerHandler.class);
 
     private TcpDispatcher dispatcher;
 
-    public NettyHandler(TcpDispatcher dispatcher) {
+    public ServerHandler(TcpDispatcher dispatcher) {
         this.dispatcher = dispatcher;
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
     }
 
     @Override
@@ -40,11 +36,12 @@ public class NettyHandler extends SimpleChannelInboundHandler<Packet>
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    }
-
-    @Override
     protected void channelRead0(ChannelHandlerContext ctx, Packet msg) throws Exception {
         dispatcher.handle(ctx.channel(), msg);
+    }
+    
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        
     }
 }

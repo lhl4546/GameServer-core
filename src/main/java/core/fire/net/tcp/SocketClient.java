@@ -10,8 +10,10 @@ import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -25,38 +27,12 @@ import io.netty.channel.socket.nio.NioSocketChannel;
  */
 public class SocketClient
 {
-    protected Bootstrap bootstrap = new Bootstrap();
+    protected Bootstrap bootstrap;
     protected EventLoopGroup multiplexer;
     protected Channel channel;
     protected SocketAddress address;
 
-    private ChannelInitializer<Channel> initializer;
-
     private SocketClient() {
-    }
-
-    public static SocketClient newBuilder() {
-        return new SocketClient();
-    }
-
-    public SocketClient setHost(SocketAddress address) {
-        this.address = address;
-        return this;
-    }
-
-    public SocketClient setChannelInitializer(ChannelInitializer<Channel> initializer) {
-        this.initializer = initializer;
-        return this;
-    }
-
-    public SocketClient build() {
-        this.init();
-        return this;
-    }
-
-    private void init() {
-        multiplexer = new NioEventLoopGroup(1, new NamedThreadFactory("client"));
-        bootstrap.group(multiplexer).channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true).handler(initializer);
     }
 
     /**
@@ -124,6 +100,59 @@ public class SocketClient
         close();
         if (multiplexer != null) {
             multiplexer.shutdownGracefully();
+        }
+    }
+
+    public static class SocketClientBuilder
+    {
+        SocketAddress address;
+        CodecFactory codecFactory;
+        ChannelInboundHandler handler;
+
+        private SocketClientBuilder() {
+        }
+
+        public static SocketClientBuilder builder() {
+            return new SocketClientBuilder();
+        }
+
+        public SocketClientBuilder setHost(SocketAddress address) {
+            this.address = address;
+            return this;
+        }
+
+        public SocketClientBuilder setCodecFactory(CodecFactory codecFactory) {
+            this.codecFactory = codecFactory;
+            return this;
+        }
+
+        public SocketClientBuilder setHandler(ChannelInboundHandler handler) {
+            this.handler = handler;
+            return this;
+        }
+
+        public SocketClient build() {
+            ChannelInitializer<Channel> initializer = buildInitializer();
+            NioEventLoopGroup multiplexer = new NioEventLoopGroup(1, new NamedThreadFactory("client"));
+            Bootstrap bootstrap = new Bootstrap();
+            bootstrap.group(multiplexer).channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true).handler(initializer);
+            SocketClient client = new SocketClient();
+            client.bootstrap = bootstrap;
+            client.multiplexer = multiplexer;
+            client.address = address;
+            return client;
+        }
+
+        private ChannelInitializer<Channel> buildInitializer() {
+            return new ChannelInitializer<Channel>() {
+                @Override
+                protected void initChannel(Channel ch) throws Exception {
+                    ChannelPipeline pipe = ch.pipeline();
+                    pipe.addLast("ENCODER", codecFactory.getEncoder());
+                    pipe.addLast("DECODER", codecFactory.getDecoder());
+                    pipe.addLast("HANDLER", handler);
+                }
+            };
         }
     }
 }

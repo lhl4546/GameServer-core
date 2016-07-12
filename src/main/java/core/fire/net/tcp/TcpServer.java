@@ -34,13 +34,13 @@ public class TcpServer implements Component
     private EventLoopGroup bossgroup;
     private EventLoopGroup childgroup;
     private Channel serverSocket;
-    private NettyChannelInitializer channelInitializer;
+    private ServerChannelInitializer channelInitializer;
     private TcpDispatcher dispatcher;
     private SocketAddress address;
 
     public TcpServer(CoreServer core) {
         this.dispatcher = new TcpDispatcher(core);
-        this.channelInitializer = new NettyChannelInitializer(dispatcher, core.getCodecFactory());
+        this.channelInitializer = new ServerChannelInitializer(dispatcher, core.getCodecFactory());
         this.address = core.getTcpAddress();
         this.bootstrap = new ServerBootstrap();
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("acceptor"));
