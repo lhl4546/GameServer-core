@@ -88,4 +88,11 @@ public class CoreServer
     public Sequence newSequence() {
         return new Sequence(getExecutor());
     }
+
+    /**
+     * @return 数值模版扫描路径，支持以英文逗号分隔的多个路径(如 "a.b,c.d")
+     */
+    public String getTemplateScanPath() {
+        throw new AbstractMethodError();
+    }
 }
