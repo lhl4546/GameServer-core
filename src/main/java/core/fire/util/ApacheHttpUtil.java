@@ -14,6 +14,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -47,6 +48,8 @@ public class ApacheHttpUtil
 
     /**
      * 发送HTTP POST请求，并返回字符串应答
+     * <p>
+     * MIME: application/x-www-form-urlencoded
      * 
      * @param url
      * @param params
@@ -54,6 +57,20 @@ public class ApacheHttpUtil
      */
     public static String POST(String url, Iterable<NameValuePair> params) {
         HttpUriRequest request = RequestBuilder.post(url).setEntity(new UrlEncodedFormEntity(params)).build();
+        return execute(request);
+    }
+
+    /**
+     * 发送HTTP POST请求，并返回字符串应答
+     * <p>
+     * MIME: text/plain
+     * 
+     * @param url
+     * @param data
+     * @return
+     */
+    public static String POST(String url, String data) {
+        HttpUriRequest request = RequestBuilder.post(url).setEntity(new StringEntity(data, StandardCharsets.UTF_8)).build();
         return execute(request);
     }
 
