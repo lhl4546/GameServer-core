@@ -11,24 +11,28 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import core.fire.util.TimeUtil;
-import core.fire.util.Util;
 
 /**
  * 定时器
  * 
  * <p>
  * 定时器不适合执行耗时任务，建议仅用于触发
+ * <p>
+ * 对于周期性定时任务，如果某个任务执行时间比执行间隔要长，则下次任务将在此次结束后立即执行，不会并发执行。
+ * 如果某个任务抛出异常将导致后续任务无法执行，因此建议提交的任务尽量自行捕获异常避免影响后续执行。
  * 
  * @author lhl
  *
  */
-public class Timer implements Component
-{
+public enum Timer {
+    INSTANCE;
+
     /** 定时任务执行器 */
     private ScheduledExecutorService executor;
 
-    public Timer() {
-        executor = Executors.newScheduledThreadPool(1, new NamedThreadFactory("TIMER"));
+    private Timer() {
+        executor = Executors.newScheduledThreadPool(1, new NamedThreadFactory("timer"));
+        ((ScheduledThreadPoolExecutor) executor).setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     }
 
     /**
@@ -70,8 +74,7 @@ public class Timer implements Component
      * @param secondOfMinute 秒
      * @return {@link ScheduledFuture}
      */
-    public ScheduledFuture<?> scheduleEveryWeek(Runnable task, int dayOfWeek, int hourOfDay, int minuteOfHour,
-            int secondOfMinute) {
+    public ScheduledFuture<?> scheduleEveryWeek(Runnable task, int dayOfWeek, int hourOfDay, int minuteOfHour, int secondOfMinute) {
         long firstDelay = TimeUtil.getWeekDelay(dayOfWeek, hourOfDay, minuteOfHour, secondOfMinute);
         return executor.scheduleAtFixedRate(task, firstDelay, TimeUtil.MILLIS_PER_WEEK, TimeUnit.MILLISECONDS);
     }
@@ -88,16 +91,5 @@ public class Timer implements Component
     public ScheduledFuture<?> scheduleEveryDay(Runnable task, int hourOfDay, int minuteOfHour, int secondOfMinute) {
         long firstDelay = TimeUtil.getDayDelay(hourOfDay, minuteOfHour, secondOfMinute);
         return executor.scheduleAtFixedRate(task, firstDelay, TimeUtil.MILLIS_PER_DAY, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public void start() throws Exception {
-        // 这个参数设置为false，后续任务在shutdown后不会再执行
-        ((ScheduledThreadPoolExecutor) executor).setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
-    }
-
-    @Override
-    public void stop() throws Exception {
-        Util.shutdownThreadPool(executor, 0);
     }
 }
