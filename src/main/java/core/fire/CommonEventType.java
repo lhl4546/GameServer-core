@@ -17,6 +17,7 @@ import core.fire.util.TimeUtil;
  * <p>
  * 开启时间 - 结束时间
  * <ol>
+ * <li>永不开启</li>
  * <li>永久开启: 无需配置起止时间</li>
  * <li>每日循环: HH:mm:ss - HH:mm:ss</li>
  * <li>每周循环: u HH:mm:ss - u HH:mm:ss</li>
@@ -29,6 +30,26 @@ import core.fire.util.TimeUtil;
  *         2015年12月31日 上午9:16:09
  */
 public enum CommonEventType {
+    /**
+     * 永不开启
+     */
+    NEVER {
+        @Override
+        public long calcDelay(String time) throws Exception {
+            return 0;
+        }
+
+        @Override
+        public SimpleDateFormat getFormatter() {
+            return null;
+        }
+
+        @Override
+        public boolean isNowOpened(String beginTime, String endTime) throws Exception {
+            return false;
+        }
+    },
+
     /**
      * 永久开启
      */
@@ -57,8 +78,7 @@ public enum CommonEventType {
             Date date = fmt.parse(time);
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
-            return TimeUtil.getDayDelay(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE),
-                    cal.get(Calendar.SECOND));
+            return TimeUtil.getDayDelay(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
         }
 
         @Override
@@ -75,8 +95,7 @@ public enum CommonEventType {
             Date date = fmt.parse(time);
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
-            return TimeUtil.getWeekDelay(cal.get(Calendar.DAY_OF_WEEK), cal.get(Calendar.HOUR_OF_DAY),
-                    cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
+            return TimeUtil.getWeekDelay(cal.get(Calendar.DAY_OF_WEEK), cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
         }
 
         @Override
@@ -93,8 +112,7 @@ public enum CommonEventType {
             Date date = fmt.parse(time);
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
-            return TimeUtil.getMonthDelay(cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY),
-                    cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
+            return TimeUtil.getMonthDelay(cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
         }
 
         @Override
@@ -111,8 +129,7 @@ public enum CommonEventType {
             Date date = fmt.parse(time);
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
-            return TimeUtil.getYearDelay(cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH),
-                    cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
+            return TimeUtil.getYearDelay(cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
         }
 
         @Override
