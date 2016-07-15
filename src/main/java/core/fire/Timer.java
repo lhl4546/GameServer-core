@@ -76,7 +76,7 @@ public enum Timer {
      */
     public ScheduledFuture<?> scheduleEveryWeek(Runnable task, int dayOfWeek, int hourOfDay, int minuteOfHour, int secondOfMinute) {
         long firstDelay = TimeUtil.getWeekDelay(dayOfWeek, hourOfDay, minuteOfHour, secondOfMinute);
-        return executor.scheduleAtFixedRate(task, firstDelay, TimeUtil.MILLIS_PER_WEEK, TimeUnit.MILLISECONDS);
+        return schedule(task, firstDelay, TimeUtil.MILLIS_PER_WEEK, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -90,6 +90,6 @@ public enum Timer {
      */
     public ScheduledFuture<?> scheduleEveryDay(Runnable task, int hourOfDay, int minuteOfHour, int secondOfMinute) {
         long firstDelay = TimeUtil.getDayDelay(hourOfDay, minuteOfHour, secondOfMinute);
-        return executor.scheduleAtFixedRate(task, firstDelay, TimeUtil.MILLIS_PER_DAY, TimeUnit.MILLISECONDS);
+        return schedule(task, firstDelay, TimeUtil.MILLIS_PER_DAY, TimeUnit.MILLISECONDS);
     }
 }
