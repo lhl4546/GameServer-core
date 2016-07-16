@@ -17,15 +17,38 @@ import core.fire.util.Util;
  */
 public class CoreExecutor extends ScheduledThreadPoolExecutor
 {
+    // 默认统计间隔
+    private static final int DEFAULT_STATISTIC_PERIOD = 2;
     // 统计间隔，单位小时
     private int statisticPeriod;
 
+    /**
+     * @param threadFactory 线程工厂
+     */
+    public CoreExecutor(ThreadFactory threadFactory) {
+        this(1, threadFactory);
+    }
+
+    /**
+     * @param nThreads 线程数
+     * @param threadFactory 线程工厂
+     */
     public CoreExecutor(int nThreads, ThreadFactory threadFactory) {
+        this(nThreads, DEFAULT_STATISTIC_PERIOD, threadFactory);
+    }
+
+    /**
+     * @param nThreads 线程数
+     * @param statisticPeriod 统计间隔(单位小时)
+     * @param threadFactory 线程工厂
+     */
+    public CoreExecutor(int nThreads, int statisticPeriod, ThreadFactory threadFactory) {
         super(nThreads, threadFactory);
-        statisticPeriod = 2;
+        this.statisticPeriod = statisticPeriod;
         scheduleStatisticTask();
     }
 
+    // 启动定时统计任务
     protected void scheduleStatisticTask() {
         Runnable task = () -> {
             String info = toString();
