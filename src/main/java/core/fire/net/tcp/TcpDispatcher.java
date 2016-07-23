@@ -1,7 +1,7 @@
 /**
  * 
  */
-package core.fire.executor;
+package core.fire.net.tcp;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -19,7 +19,7 @@ import core.fire.Component;
 import core.fire.CoreServer;
 import core.fire.Dumpable;
 import core.fire.collection.IntHashMap;
-import core.fire.net.tcp.Packet;
+import core.fire.executor.Sequence;
 import core.fire.util.ClassUtil;
 import core.fire.util.Util;
 import io.netty.channel.Channel;
@@ -65,7 +65,7 @@ public final class TcpDispatcher implements Component
         this.executor = core.getExecutor();
     }
 
-    public void handle(Channel channel, Packet packet) {
+    public void handle(Channel channel, IPacket packet) {
         doDispatch(channel, packet);
     }
 
@@ -75,10 +75,10 @@ public final class TcpDispatcher implements Component
      * @param channel
      * @param packet
      */
-    protected void doDispatch(Channel channel, Packet packet) {
-        Handler handler = handlerMap.get(packet.code);
+    protected void doDispatch(Channel channel, IPacket packet) {
+        Handler handler = handlerMap.get(packet.getCode());
         if (handler == null) {
-            LOG.warn("No handler found for code {}, session will be closed", packet.code);
+            LOG.warn("No handler found for code {}, session will be closed", packet.getCode());
             channel.close();
             return;
         }

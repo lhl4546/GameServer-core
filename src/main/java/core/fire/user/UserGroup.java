@@ -6,7 +6,7 @@ package core.fire.user;
 import java.util.ArrayList;
 import java.util.List;
 
-import core.fire.net.tcp.Packet;
+import core.fire.net.tcp.IPacket;
 
 /**
  * 用户组。非线程安全
@@ -31,7 +31,7 @@ public class UserGroup
      * 
      * @param packet
      */
-    public void broadcast(Packet packet) {
+    public void broadcast(IPacket packet) {
         for (User user : users) {
             user.send(packet);
         }

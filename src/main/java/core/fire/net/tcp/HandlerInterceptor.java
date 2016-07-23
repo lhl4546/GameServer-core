@@ -1,4 +1,4 @@
-package core.fire.executor;
+package core.fire.net.tcp;
 
 /**
  * TCP协议拦截器接口，实现此接口的拦截器将自动被{@linkplain TcpDispatcher}扫描并注册。 该接口继承了
