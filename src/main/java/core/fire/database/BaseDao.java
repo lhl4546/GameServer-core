@@ -147,7 +147,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
             if (field != primaryKey)
                 sb.append(field.getName()).append("=?,");
         }
-        return sb.substring(0, sb.length() - 1);
+        return sb.length() == 0 ? primaryKey.getName() + "=?" : sb.substring(0, sb.length() - 1);
     }
 
     private void initInsertSQL() {
