@@ -180,7 +180,7 @@ public class DataParser
             for (Field field : fields) {
                 PropertyAlias anno = field.getAnnotation(PropertyAlias.class);
                 if (anno != null) {
-                    ret.put(anno.value(), field.getName());
+                    ret.put(anno.value().toLowerCase(), field.getName());
                 }
             }
             return ret;
@@ -256,7 +256,7 @@ public class DataParser
                 if (null == colName || 0 == colName.length()) {
                     throw new IllegalArgumentException("第" + (col + 1) + "个字段对应的key为空");
                 }
-                String propertyName = keyToPropertyOverrides.get(colName);
+                String propertyName = keyToPropertyOverrides.get(colName.toLowerCase());
                 if (propertyName == null) {
                     propertyName = colName;
                 }
@@ -305,7 +305,7 @@ public class DataParser
             Class<?> propType = prop.getPropertyType();
             Object targetVal = null;
             if (propType != null) {
-                if (propType.isPrimitive() && (isEmpty(strVal))) {
+                if (isEmpty(strVal) && propType.isPrimitive()) {
                     return; // 基础类型字段且被留空则不赋值(使用默认值)
                 }
 
@@ -364,7 +364,7 @@ public class DataParser
          * @return
          */
         private boolean isEmpty(String value) {
-            return value == null || value.equals(EMPTY_VALUE1) || value.equals(EMPTY_VALUE2);
+            return value == null || EMPTY_VALUE1.equals(value) || EMPTY_VALUE2.equals(value);
         }
 
         /**
@@ -480,7 +480,7 @@ public class DataParser
     @Retention(RetentionPolicy.RUNTIME)
     public @interface PropertyAlias {
         /**
-         * name必须与配置字段完全一致
+         * 大小写无关
          * 
          * @return
          */
