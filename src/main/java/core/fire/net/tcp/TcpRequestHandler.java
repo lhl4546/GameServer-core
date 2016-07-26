@@ -1,7 +1,7 @@
 /**
  * 
  */
-package core.fire.executor;
+package core.fire.net.tcp;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 import com.google.protobuf.GeneratedMessage;
 
 /**
- * TCP协议处理器注解，TCP协议指的是实现了{@link core.fire.executor.Handler}的子类，给这种子类加上
+ * TCP协议处理器注解，TCP协议指的是实现了{@link core.fire.net.tcp.Handler}的子类，给这种子类加上
  * {@code RequestHandler}注解以便{@code TcpDispatcher}能够扫描并注册协议处理器
  * 
  * @author lhl

@@ -1,8 +1,6 @@
-package core.fire.executor;
+package core.fire.net.tcp;
 
 import com.google.protobuf.GeneratedMessage;
-
-import core.fire.net.tcp.Packet;
 
 /**
  * 参数类型拦截器
@@ -21,9 +19,9 @@ public class ParameterTypeInterceptor implements HandlerInterceptor
     
     @Override
     public boolean preHandle(SocketRequest request) {
-        Packet packet = request.getPacket();
-        if (packet.body != null) {
-            GeneratedMessage paramType = dispatcher.getParamType(request.getPacket().code);
+        IPacket packet = request.getPacket();
+        if (packet.getBody() != null) {
+            GeneratedMessage paramType = dispatcher.getParamType(packet.getCode());
             Object requestParameter = packet.toProto(paramType);
             request.setRequestParameter(requestParameter);
         }

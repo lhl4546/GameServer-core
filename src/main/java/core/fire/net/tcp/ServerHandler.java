@@ -6,7 +6,6 @@ package core.fire.net.tcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import core.fire.executor.TcpDispatcher;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -19,7 +18,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
  *         2016年1月29日 下午5:36:23
  */
 @Sharable
-public class ServerHandler extends SimpleChannelInboundHandler<Packet>
+public class ServerHandler extends SimpleChannelInboundHandler<IPacket>
 {
     private static final Logger LOG = LoggerFactory.getLogger(ServerHandler.class);
 
@@ -31,17 +30,17 @@ public class ServerHandler extends SimpleChannelInboundHandler<Packet>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LOG.debug("", cause);
+        LOG.error("", cause);
         ctx.close();
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Packet msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, IPacket msg) throws Exception {
         dispatcher.handle(ctx.channel(), msg);
     }
-    
+
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        
+
     }
 }

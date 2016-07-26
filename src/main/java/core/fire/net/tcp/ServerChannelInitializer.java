@@ -3,7 +3,6 @@
  */
 package core.fire.net.tcp;
 
-import core.fire.executor.TcpDispatcher;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;

@@ -3,10 +3,10 @@
  */
 package core.fire.user;
 
-import static core.fire.executor.TcpDispatcher.SEQUENCE_KEY;
+import static core.fire.net.tcp.TcpDispatcher.SEQUENCE_KEY;
 
 import core.fire.executor.Sequence;
-import core.fire.net.tcp.Packet;
+import core.fire.net.tcp.IPacket;
 import io.netty.channel.Channel;
 
 /**
@@ -48,7 +48,7 @@ public class User
      * 
      * @param packet
      */
-    public void send(Packet packet) {
+    public void send(IPacket packet) {
         channel.writeAndFlush(packet);
     }
 }
