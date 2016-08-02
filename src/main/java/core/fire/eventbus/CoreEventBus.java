@@ -25,7 +25,7 @@ public class CoreEventBus
     }
 
     /**
-     * 注册时间处理器
+     * 注册事件处理器
      * 
      * @param object
      */

@@ -3,7 +3,9 @@
  */
 package core.fire.executor;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
@@ -15,35 +17,28 @@ import core.fire.util.Util;
  * @author lihuoliang
  *
  */
-public class CoreExecutor extends ScheduledThreadPoolExecutor
+public class CoreExecutor implements Executor
 {
     // 默认统计间隔
     private static final int DEFAULT_STATISTIC_PERIOD = 2;
     // 统计间隔，单位小时
     private int statisticPeriod;
+    // 内部执行线程池
+    private ScheduledExecutorService executor;
 
     /**
      * @param threadFactory 线程工厂
      */
     public CoreExecutor(ThreadFactory threadFactory) {
-        this(1, threadFactory);
+        this(DEFAULT_STATISTIC_PERIOD, threadFactory);
     }
 
     /**
-     * @param nThreads 线程数
-     * @param threadFactory 线程工厂
-     */
-    public CoreExecutor(int nThreads, ThreadFactory threadFactory) {
-        this(nThreads, DEFAULT_STATISTIC_PERIOD, threadFactory);
-    }
-
-    /**
-     * @param nThreads 线程数
      * @param statisticPeriod 统计间隔(单位小时)
      * @param threadFactory 线程工厂
      */
-    public CoreExecutor(int nThreads, int statisticPeriod, ThreadFactory threadFactory) {
-        super(nThreads, threadFactory);
+    public CoreExecutor(int statisticPeriod, ThreadFactory threadFactory) {
+        executor = Executors.newScheduledThreadPool(1, threadFactory);
         this.statisticPeriod = statisticPeriod;
         scheduleStatisticTask();
     }
@@ -54,7 +49,7 @@ public class CoreExecutor extends ScheduledThreadPoolExecutor
             String info = toString();
             logStatisticInfo(info);
         };
-        scheduleAtFixedRate(task, 0, statisticPeriod, TimeUnit.HOURS);
+        executor.scheduleAtFixedRate(task, 0, statisticPeriod, TimeUnit.HOURS);
     }
 
     /**
@@ -72,6 +67,19 @@ public class CoreExecutor extends ScheduledThreadPoolExecutor
      * @param timeToWait 停止等待时间，单位毫秒
      */
     public void shutdown(int timeToWait) {
-        Util.shutdownThreadPool(this, timeToWait);
+        Util.shutdownThreadPool(executor, timeToWait);
+    }
+
+    /**
+     * 返回线程池统计信息
+     */
+    @Override
+    public String toString() {
+        return executor.toString();
+    }
+
+    @Override
+    public void execute(Runnable command) {
+        executor.execute(command);
     }
 }

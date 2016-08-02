@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import core.fire.util.TimeUtil;
+import core.fire.util.Util;
 
 /**
  * 定时器
@@ -19,7 +20,7 @@ import core.fire.util.TimeUtil;
  * 定时器不适合执行耗时任务，建议仅用于触发
  * <p>
  * 对于周期性定时任务，如果某个任务执行时间比执行间隔要长，则下次任务将在此次结束后立即执行，不会并发执行。
- * 如果某个任务抛出异常将导致后续任务无法执行，因此建议提交的任务尽量自行捕获异常避免影响后续执行。
+ * 如果某个周期循环任务抛出异常将导致后续循环无法执行，因此建议任务提交者自行捕获异常避免影响后续执行。
  * 
  * @author lhl
  *
@@ -33,6 +34,13 @@ public enum Timer {
     private Timer() {
         executor = Executors.newScheduledThreadPool(1, new NamedThreadFactory("timer"));
         ((ScheduledThreadPoolExecutor) executor).setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+    }
+
+    /**
+     * 立即停止定时器线程，所有等待中的任务将被取消，所有正在执行的任务将被中断
+     */
+    public void shutdown() {
+        Util.shutdownThreadPool(executor, 0);
     }
 
     /**
