@@ -27,6 +27,9 @@ import core.fire.executor.SingleThreadExecutor;
  * {@linkplain org.apache.commons.dbutils.BeanProcessor}实现的ORM。
  * {@code JdbcTemplate}只与SQL和{@code ResultSet}取值器打交道，那么该类就首先利用
  * Java反射原理生成操作SQL与SQL参数，然后利用{BeanProcessor}实现{@code ResultSet} 到实体类的转换。
+ * <p>
+ * 若该类中的方法无法满足使用，则可以使用{@linkplain #execute(JdbcTemplateCallback)}实现任意
+ * {@code JdbcTemplate}支持的行为
  * 
  * @author lhl
  *
@@ -265,76 +268,16 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     // JDBC operation ------------------------
-    protected JdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-
     /**
-     * 自定义SELECT
+     * 执行JDBC数据访问操作，允许执行任意{@code JdbcTemplate}提供的操作。
+     * <p>
+     * {@code action}可以返回一个结果对象，例如一个实体对象或者一个实体集合对象
      * 
-     * @param sql
-     * @param args
-     * @return 返回单个实体
+     * @param action
+     * @return
      */
-    protected T query(String sql, Object[] args) {
-        Timer timer = Timer.start();
-        try {
-            return jdbcTemplate.query(sql, args, beanExtrator);
-        } finally {
-            timer.end();
-            getLogger().debug("Table {}.query, time = {} ms", tableName, timer.get());
-        }
-    }
-
-    /**
-     * 自定义SELECT
-     * 
-     * @param sql
-     * @param args
-     * @param extractor
-     * @return 返回自定义类型
-     */
-    protected <P> P query(String sql, Object[] args, ResultSetExtractor<P> extractor) {
-        Timer timer = Timer.start();
-        try {
-            return jdbcTemplate.query(sql, args, extractor);
-        } finally {
-            timer.end();
-            getLogger().debug("Table {}.query, time = {} ms", tableName, timer.get());
-        }
-    }
-
-    /**
-     * 自定义SELECT
-     * 
-     * @param sql
-     * @param args
-     * @return 返回实体列表
-     */
-    protected List<T> queryList(String sql, Object[] args) {
-        Timer timer = Timer.start();
-        try {
-            return jdbcTemplate.query(sql, args, beanListExtractor);
-        } finally {
-            timer.end();
-            getLogger().debug("Table {}.queryList, time = {} ms", tableName, timer.get());
-        }
-    }
-
-    /**
-     * 自定义INSERT、UPDATE、DELETE
-     * 
-     * @param sql
-     * @param args
-     */
-    protected void update(String sql, Object[] args) {
-        Timer timer = Timer.start();
-        try {
-            jdbcTemplate.update(sql, args);
-        } finally {
-            timer.end();
-            getLogger().debug("Table {}.update, time = {} ms", tableName, timer.get());
-        }
+    protected <E> E execute(JdbcTemplateCallback<E> action) {
+        return action.doInJdbcTemplate(jdbcTemplate);
     }
 
     @Override
