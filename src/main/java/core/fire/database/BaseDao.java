@@ -20,8 +20,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
 import core.fire.Callback;
-import core.fire.CoreServer;
-import core.fire.executor.Sequence;
+import core.fire.executor.SingleThreadExecutor;
 
 /**
  * 基于Spring {@linkplain org.springframework.jdbc.core.JdbcTemplate} 和
@@ -57,14 +56,11 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     private final BeanProcessor beanProcessor = new BeanProcessor();
 
+    // 异步访问数据使用单线程
+    private static final SingleThreadExecutor EXECUTOR = new SingleThreadExecutor("database");
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
-    @Autowired
-    private CoreServer coreServer;
-
-    // 使用Sequence的目的在于保证同一种类的实体之间的逻辑顺序，避免出现逻辑的执行顺序与提交顺序不一致的问题
-    // 如果同一实体逻辑提交顺序为更改->删除，但是执行顺序变成了删除->更改，这就有问题了
-    private Sequence sequence;
 
     protected BaseDao(Class<T> type) {
         this.type = Objects.requireNonNull(type);
@@ -464,20 +460,9 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         addTask(task);
     }
 
-    private Sequence getSequence() {
-        if (sequence == null) {
-            synchronized (this) {
-                if (sequence == null) {
-                    sequence = new Sequence(coreServer.getAsyncExecutor());
-                }
-            }
-        }
-        return sequence;
-    }
-
     // 提交任务
     protected void addTask(Runnable task) {
-        getSequence().addTask(task);
+        EXECUTOR.execute(task);
     }
 
     protected abstract Logger getLogger();
