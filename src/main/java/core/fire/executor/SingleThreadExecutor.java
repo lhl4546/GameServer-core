@@ -18,18 +18,19 @@ public class SingleThreadExecutor implements Executor
     private static final Logger LOG = LoggerFactory.getLogger(SingleThreadExecutor.class);
     private BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
     private Thread thread;
-    private final Runnable TERMINATE_TASK = () -> {
-    };
+    private boolean running = true;
+    private final Runnable TERMINATE_TASK = () -> running = false;
 
     public SingleThreadExecutor(String threadName) {
+        startWorker(threadName);
+    }
+
+    private void startWorker(String threadName) {
         Runnable worker = () -> {
-            while (true) {
+            while (running) {
                 try {
                     Runnable task = taskQueue.take();
                     if (task != null) {
-                        if (task == TERMINATE_TASK) {
-                            break;
-                        }
                         task.run();
                     }
                 } catch (Throwable t) {
@@ -46,7 +47,26 @@ public class SingleThreadExecutor implements Executor
         taskQueue.offer(command);
     }
 
-    public void shutdown() {
-        taskQueue.add(TERMINATE_TASK);
+    /**
+     * 当前队列中处于等待状态的任务数量
+     * 
+     * @return
+     */
+    public int waitCount() {
+        return taskQueue.size();
+    }
+
+    /**
+     * 停止线程
+     * 
+     * @param immediately true表示立即中断当前执行中的任务并停止线程，false表示需要等待当前队列中的任务全部执行完毕
+     */
+    public void shutdown(boolean immediately) {
+        if (immediately) {
+            running = false;
+            thread.interrupt();
+        } else {
+            execute(TERMINATE_TASK);
+        }
     }
 }
