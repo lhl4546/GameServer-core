@@ -3,11 +3,35 @@ package core.fire;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 
+import core.fire.eventbus.EventBus;
 import core.fire.executor.Sequence;
 import core.fire.net.tcp.CodecFactory;
 
 public class CoreServer
 {
+    /**
+     * 事件总线
+     */
+    private EventBus eventBus = new EventBus();
+
+    /**
+     * 注册事件处理器
+     * 
+     * @param object
+     */
+    public void regisEventHandler(Object object) {
+        eventBus.register(object);
+    }
+
+    /**
+     * 提交事件
+     * 
+     * @param object
+     */
+    public void postEvent(Object object) {
+        eventBus.post(object);
+    }
+
     /**
      * @return 异步任务线程池
      */
