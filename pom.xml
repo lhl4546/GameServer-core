@@ -19,6 +19,7 @@
 		<fastjson.version>1.2.5</fastjson.version>
 		<httpclient.version>4.5.2</httpclient.version>
 		<guava.version>18.0</guava.version>
+		<javapns.version>2.3.1</javapns.version>
 	</properties>
 
 	<dependencies>
@@ -79,6 +80,11 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>${guava.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.fernandospr</groupId>
+			<artifactId>javapns-jdk16</artifactId>
+			<version>${javapns.version}</version>
 		</dependency>
 	</dependencies>
 </project>
