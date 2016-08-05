@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ import core.fire.Callback;
  * 若该类中的方法无法满足使用，则可以使用{@linkplain #execute(JdbcTemplateCallback)}实现任意
  * {@code JdbcTemplate}支持的行为
  * <p>
- * 使用该类必须提供{@code JdbcTemplate}和{@code Executor}这2个bean以完成依赖注入。其中
+ * 使用该类必须提供{@code DataSource}和{@code Executor}这2个bean以完成依赖注入。其中
  * {@code Executor}这个bean需要限定名为<tt>daoExecutor</tt>
  * 
  * @author lhl
@@ -63,7 +64,6 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     private final BeanProcessor beanProcessor = new BeanProcessor();
 
-    @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
     @Qualifier("daoExecutor")
@@ -71,6 +71,11 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     protected BaseDao(Class<T> type) {
         this.type = Objects.requireNonNull(type);
+    }
+    
+    @Autowired
+    public void setDataSource(DataSource dataSource) {
+        jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @PostConstruct
