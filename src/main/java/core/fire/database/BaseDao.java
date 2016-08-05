@@ -9,18 +9,19 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
 import core.fire.Callback;
-import core.fire.executor.SingleThreadExecutor;
 
 /**
  * 基于Spring {@linkplain org.springframework.jdbc.core.JdbcTemplate} 和
@@ -30,6 +31,9 @@ import core.fire.executor.SingleThreadExecutor;
  * <p>
  * 若该类中的方法无法满足使用，则可以使用{@linkplain #execute(JdbcTemplateCallback)}实现任意
  * {@code JdbcTemplate}支持的行为
+ * <p>
+ * 使用该类必须提供{@code JdbcTemplate}和{@code Executor}这2个bean以完成依赖注入。其中
+ * {@code Executor}这个bean需要限定名为<tt>daoExecutor</tt>
  * 
  * @author lhl
  *
@@ -59,11 +63,11 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     private final BeanProcessor beanProcessor = new BeanProcessor();
 
-    // 异步访问数据使用单线程
-    private static final SingleThreadExecutor EXECUTOR = new SingleThreadExecutor("database");
-
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    @Qualifier("daoExecutor")
+    private Executor executor; // dao异步任务执行器
 
     protected BaseDao(Class<T> type) {
         this.type = Objects.requireNonNull(type);
@@ -114,7 +118,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     private String dumpFields(List<Field> fields) {
         StringBuilder builder = new StringBuilder();
         for (Field field : fields) {
-            builder.append(field.getName()).append(", ");
+            builder.append(field.getName()).append(",");
         }
         return builder.substring(0, builder.length() - 1);
     }
@@ -282,54 +286,54 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     @Override
     public void add(T t) {
-        Timer timer = Timer.start();
+        long start = System.currentTimeMillis();
         String sql = sql_insert;
         Object[] param = getInsertParam(t);
         jdbcTemplate.update(sql, param);
-        timer.end();
-        getLogger().debug("Table {}.add, time = {} ms", tableName, timer.get());
+        long end = System.currentTimeMillis();
+        getLogger().debug("Table {}.add, time = {} ms", tableName, end - start);
     }
 
     @Override
     public void delete(int primaryKey) {
-        Timer timer = Timer.start();
+        long start = System.currentTimeMillis();
         String sql = sql_delete;
         jdbcTemplate.update(sql, new Object[] { primaryKey });
-        timer.end();
-        getLogger().debug("Table {}.delete, time = {} ms", tableName, timer.get());
+        long end = System.currentTimeMillis();
+        getLogger().debug("Table {}.delete, time = {} ms", tableName, end - start);
     }
 
     @Override
     public void update(T t) {
-        Timer timer = Timer.start();
+        long start = System.currentTimeMillis();
         String sql = sql_update;
         Object[] param = getUpdateParam(t);
         jdbcTemplate.update(sql, param);
-        timer.end();
-        getLogger().debug("Table {}.update, time = {} ms", tableName, timer.get());
+        long end = System.currentTimeMillis();
+        getLogger().debug("Table {}.update, time = {} ms", tableName, end - start);
     }
 
     @Override
     public T get(int primaryKey) {
-        Timer timer = Timer.start();
+        long start = System.currentTimeMillis();
         String sql = sql_select_by_primary_key;
         try {
             return jdbcTemplate.query(sql, new Object[] { primaryKey }, beanExtrator);
         } finally {
-            timer.end();
-            getLogger().debug("Table {}.get, time = {} ms", tableName, timer.get());
+            long end = System.currentTimeMillis();
+            getLogger().debug("Table {}.get, time = {} ms", tableName, end - start);
         }
     }
 
     @Override
     public List<T> getBySecondaryKey(Object secondaryKey) {
-        Timer timer = Timer.start();
+        long start = System.currentTimeMillis();
         String sql = sql_select_by_second_key;
         try {
             return jdbcTemplate.query(sql, new Object[] { secondaryKey }, beanListExtractor);
         } finally {
-            timer.end();
-            getLogger().debug("Table {}.getBySecondaryKey, time = {} ms", tableName, timer.get());
+            long end = System.currentTimeMillis();
+            getLogger().debug("Table {}.getBySecondaryKey, time = {} ms", tableName, end - start);
         }
     }
 
@@ -405,55 +409,8 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     // 提交任务
     protected void addTask(Runnable task) {
-        EXECUTOR.execute(task);
+        executor.execute(task);
     }
 
     protected abstract Logger getLogger();
-
-    /**
-     * 时间测试，用法:
-     * 
-     * <pre>
-     * Timer timer = Timer.start();
-     * your code here;
-     * timer.end();
-     * System.out.println("time = " + timer.time());
-     * </pre>
-     * 
-     * @author lhl
-     *
-     *         2016年5月10日 下午3:47:31
-     */
-    public static class Timer
-    {
-        long startTime;
-        long endTime;
-
-        private Timer() {
-            startTime = System.currentTimeMillis();
-        }
-
-        /**
-         * 启动计时器，这将记录一个起始时间
-         * 
-         * @return 返回一个计时器实例
-         */
-        public static Timer start() {
-            return new Timer();
-        }
-
-        /**
-         * 计时结束，这将记录一个结束时间
-         */
-        public void end() {
-            endTime = System.currentTimeMillis();
-        }
-
-        /**
-         * @return 返回计时结果，单位毫秒
-         */
-        public long get() {
-            return endTime - startTime;
-        }
-    }
 }
