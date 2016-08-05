@@ -12,15 +12,19 @@ import core.fire.executor.Sequence;
  *
  *         2016年7月11日 下午2:13:27
  */
-public abstract class AsyncCallback implements Callback
+public abstract class AsyncCallback<T> implements Callback<T>
 {
-    private Sequence sequence;
+    private Sequence sequence; // 回调将在此队列中顺序执行
 
+    /**
+     * @param sequence 回调执行顺序队列
+     */
     public AsyncCallback(Sequence sequence) {
         this.sequence = sequence;
     }
 
-    final public void onSuccess(Object param) {
+    @Override
+    final public void onSuccess(T param) {
         sequence.addTask(() -> doSuccess(param));
     }
 
@@ -29,8 +33,9 @@ public abstract class AsyncCallback implements Callback
      * 
      * @param param
      */
-    protected abstract void doSuccess(Object param);
+    protected abstract void doSuccess(T param);
 
+    @Override
     final public void onError(Throwable t) {
         sequence.addTask(() -> doError(t));
     }

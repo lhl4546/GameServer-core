@@ -338,7 +338,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     @Override
-    public void asyncAdd(T t, Callback callback) {
+    public void asyncAdd(T t, Callback<?> callback) {
         Runnable task = () -> {
             try {
                 add(t);
@@ -352,7 +352,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     @Override
-    public void asyncDelete(int primaryKey, Callback callback) {
+    public void asyncDelete(int primaryKey, Callback<?> callback) {
         Runnable task = () -> {
             try {
                 delete(primaryKey);
@@ -366,7 +366,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     @Override
-    public void asyncUpdate(T t, Callback callback) {
+    public void asyncUpdate(T t, Callback<?> callback) {
         Runnable task = () -> {
             try {
                 update(t);
@@ -380,7 +380,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     @Override
-    public void asyncGet(int primaryKey, Callback cb) {
+    public void asyncGet(int primaryKey, Callback<T> cb) {
         Runnable task = () -> {
             try {
                 T t = get(primaryKey);
@@ -394,7 +394,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     }
 
     @Override
-    public void asyncGetBySecondaryKey(Object secondaryKey, Callback cb) {
+    public void asyncGetBySecondaryKey(Object secondaryKey, Callback<List<T>> cb) {
         Runnable task = () -> {
             try {
                 List<T> t = getBySecondaryKey(secondaryKey);

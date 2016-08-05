@@ -10,14 +10,14 @@ package core.fire;
  *
  *         2016年2月18日 下午4:00:11
  */
-public interface Callback
+public interface Callback<T>
 {
     /**
      * 操作成功时调用
      * 
      * @param param 操作结果
      */
-    void onSuccess(Object param);
+    void onSuccess(T param);
 
     /**
      * 操作抛出异常时调用
@@ -29,9 +29,9 @@ public interface Callback
     /**
      * 空回调
      */
-    Callback NOOP = new Callback() {
+    Callback<Void> NOOP = new Callback<Void>() {
         @Override
-        public void onSuccess(Object param) {
+        public void onSuccess(Void param) {
         }
 
         @Override

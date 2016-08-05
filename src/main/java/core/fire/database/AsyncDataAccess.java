@@ -3,6 +3,8 @@
  */
 package core.fire.database;
 
+import java.util.List;
+
 import core.fire.Callback;
 
 /**
@@ -20,7 +22,7 @@ public interface AsyncDataAccess<T> extends DataAccess<T>
      * @param t
      * @param cb
      */
-    void asyncAdd(T t, Callback cb);
+    void asyncAdd(T t, Callback<?> cb);
 
     /**
      * 异步删除一条记录，根据主键
@@ -28,7 +30,7 @@ public interface AsyncDataAccess<T> extends DataAccess<T>
      * @param primaryKey
      * @param cb
      */
-    void asyncDelete(int primaryKey, Callback cb);
+    void asyncDelete(int primaryKey, Callback<?> cb);
 
     /**
      * 异步更新一条记录
@@ -36,7 +38,7 @@ public interface AsyncDataAccess<T> extends DataAccess<T>
      * @param t
      * @param cb
      */
-    void asyncUpdate(T t, Callback cb);
+    void asyncUpdate(T t, Callback<?> cb);
 
     /**
      * 异步查询一条记录，根据主键。操作结束后将触发回调
@@ -44,7 +46,7 @@ public interface AsyncDataAccess<T> extends DataAccess<T>
      * @param primaryKey
      * @param cb
      */
-    void asyncGet(int primaryKey, Callback cb);
+    void asyncGet(int primaryKey, Callback<T> cb);
 
     /**
      * 异步查询多条记录，根据索引。操作结束后将触发回调
@@ -52,5 +54,5 @@ public interface AsyncDataAccess<T> extends DataAccess<T>
      * @param secondaryKey
      * @param cb
      */
-    void asyncGetBySecondaryKey(Object secondaryKey, Callback cb);
+    void asyncGetBySecondaryKey(Object secondaryKey, Callback<List<T>> cb);
 }
