@@ -37,11 +37,11 @@ import java.util.stream.Stream;
  * <p>
  * <ul>
  * <li>java类需提供常用getter\setter方法</li>
- * <li>数据文件第一行为字段名，第二、三行自定义，第四行开始是数据</li>
+ * <li>数据文件第一行必须为字段名，其他表头行数自定义</li>
  * <li>列之间用tab键分隔</li>
  * <li>类字段命名应与数据文件字段名一致，若不一致应使用别名注解{@link PropertyAlias}将类字段映射到数据文件字段</li>
  * <li>字段允许填"null"或者留空</li>
- * <li>数据文件支持UTF-8编码</li>
+ * <li>数据文件只支持UTF-8编码</li>
  * <li>自动跳过空行</li>
  * </ul>
  * 支持以下特性
@@ -63,14 +63,15 @@ public class DataParser
     /**
      * 将数据文件按行解析为对象列表
      * 
-     * @param path relative class path
-     * @param type
+     * @param path 类路径文件名
+     * @param type 对应的bean类型
+     * @param skipLines 表头需要跳过的行数
      * @return
      * @throws RuntimeException
      */
-    public static <T> List<T> parse(String path, Class<T> type) throws RuntimeException {
+    public static <T> List<T> parse(String path, Class<T> type, int skipLines) throws RuntimeException {
         try {
-            List<Map<String, String>> maps = TxtParser.parse(path);
+            List<Map<String, String>> maps = TxtParser.parse(path, skipLines);
             return BeanProcessor.of(type).populate(maps, type);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -88,17 +89,18 @@ public class DataParser
         /**
          * 将数据文件解析为list，list元素为map，map的key为字段名，value为相应值 <br>
          * 文件支持UTF8格式 <br>
-         * 解析规则：文件第一行为字段名定义，第二三行未定义，第四行开始是数据内容
+         * 解析规则：文件第一行必须为字段名定义
          * 
          * @param path 文件相对类路径
+         * @param skipLines 要跳过的表头行数
          * @return
          * @throws IOException
          * @throws URISyntaxException
          */
-        public static List<Map<String, String>> parse(String file) throws IOException, URISyntaxException {
+        public static List<Map<String, String>> parse(String file, int skipLines) throws IOException, URISyntaxException {
             List<String> allLines = getAllLines(file);
             String[] fields = allLines.get(0).split("\t");
-            List<String> content = allLines.subList(3, allLines.size());
+            List<String> content = allLines.subList(skipLines, allLines.size());
 
             return content.stream().map(line -> lineToMap(fields, line)).collect(Collectors.toList());
         }
