@@ -11,11 +11,19 @@ import org.slf4j.LoggerFactory;
 import core.fire.util.Util;
 import javapns.Push;
 import javapns.communication.exceptions.KeystoreException;
-import javapns.notification.PushNotificationPayload;
 import javapns.notification.transmission.PushQueue;
 
 /**
- * IOS推送实现
+ * IOS推送实现。 用法：
+ * 
+ * <pre>
+ * IOSPushService service = new IOSPushService();
+ * service.setProductionEnvironment(false);
+ * service.setP12FilePath("file/to/path");
+ * service.setP12Password("password");
+ * IOSPushPayload payload = IOSPushPayloadBuilder.newBuilder().message("helloworld").badge(1).sound("default").build();
+ * service.puthOne(payload, "device-token");
+ * </pre>
  * 
  * @author lhl
  *
@@ -71,14 +79,14 @@ public class IOSPushService
      * @param payload 消息负载
      * @param devicetoken 接收端标识符
      */
-    public void pushOne(PushNotificationPayload payload, String devicetoken) {
+    public void pushOne(IOSPushPayload payload, String devicetoken) {
         if (pushQueue == null) {
             LOG.warn("推送队列尚未初始化，无法发送单条推送");
             return;
         }
 
         try {
-            pushQueue.add(payload, devicetoken);
+            pushQueue.add(payload.getPayload(), devicetoken);
         } catch (Exception e) {
             LOG.error("iOS推送发生异常", e);
         }
@@ -90,15 +98,30 @@ public class IOSPushService
      * @param payload 消息负载
      * @param devicetokens 接收端标识符
      */
-    public void pushBatch(PushNotificationPayload payload, List<String> devicetokens) {
+    public void pushBatch(IOSPushPayload payload, List<String> devicetokens) {
         if (Util.isNullOrEmpty(devicetokens)) {
             return;
         }
 
+        int numOfThreads = getNumberOfThreadsForPush(devicetokens.size());
         try {
-            Push.payload(payload, p12FilePath, p12Password, isProductionEnvironment, 8, devicetokens);
+            Push.payload(payload.getPayload(), p12FilePath, p12Password, isProductionEnvironment, numOfThreads, devicetokens);
         } catch (Exception e) {
             LOG.error("iOS推送发生异常", e);
         }
+    }
+
+    /**
+     * 计算推送用的线程数。每200个设备使用一个推送线程，线程数计算结果最大不超过4
+     * 
+     * @param numOfDevices 推送设备总数
+     * @return
+     */
+    private int getNumberOfThreadsForPush(int numOfDevices) {
+        int val = numOfDevices / 200;
+        if (numOfDevices % 200 != 0) {
+            val += 1;
+        }
+        return Math.min(val, 4);
     }
 }
