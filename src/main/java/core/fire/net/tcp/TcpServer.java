@@ -50,8 +50,14 @@ public class TcpServer implements Component
     @Override
     public void start() throws Exception {
         dispatcher.start();
-        bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(channelInitializer).option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_LINGER, 0)
-                .childOption(ChannelOption.TCP_NODELAY, true);
+        // @formatter:off
+        bootstrap.group(bossgroup, childgroup)
+        .channel(NioServerSocketChannel.class)
+        .childHandler(channelInitializer)
+        .option(ChannelOption.SO_BACKLOG, Integer.valueOf(128))
+        .childOption(ChannelOption.SO_LINGER, Integer.valueOf(0))
+        .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
+        // @formatter:on
         ChannelFuture future = bootstrap.bind(address);
         serverSocket = future.sync().channel();
         LOG.debug("NettyServer start listen on {}", address);

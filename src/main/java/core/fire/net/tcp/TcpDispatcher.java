@@ -62,7 +62,7 @@ public final class TcpDispatcher implements Component
 
     public TcpDispatcher(CoreServer core) {
         this.core = core;
-        this.executor = core.getExecutor();
+        this.executor = core.getTcpExecutor();
     }
 
     public void handle(Channel channel, IPacket packet) {
