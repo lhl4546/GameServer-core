@@ -33,12 +33,13 @@ import core.fire.Callback;
  * 若该类中的方法无法满足使用，则可以使用{@linkplain #execute(JdbcTemplateCallback)}实现任意
  * {@code JdbcTemplate}支持的行为
  * <p>
- * 使用该类必须提供{@code DataSource}和{@code Executor}这2个bean以完成依赖注入。其中
- * {@code Executor}这个bean需要限定名为<tt>daoExecutor</tt>
+ * 使用该类必须提供{@code DataSource}，可选依赖{@code Executor}(只在需要使用异步方法时才需要提供该依赖)，其中{@code Executor}这个bean需要限定名为<tt>daoExecutor</tt>
+ * <p>
+ * BaseDao支持基于Spring实现的IOC完成依赖注入或者直接手动实例化
  * 
  * @author lhl
  *
- *         2016年2月24日 上午10:00:50
+ * 2016年2月24日 上午10:00:50
  */
 public abstract class BaseDao<T> implements AsyncDataAccess<T>
 {
@@ -65,17 +66,30 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
     private final BeanProcessor beanProcessor = new BeanProcessor();
 
     private JdbcTemplate jdbcTemplate;
-    @Autowired
-    @Qualifier("daoExecutor")
     private Executor executor; // dao异步任务执行器
 
     protected BaseDao(Class<T> type) {
         this.type = Objects.requireNonNull(type);
     }
-    
+
+    /**
+     * 设置数据源
+     * 
+     * @param dataSource
+     */
     @Autowired
     public void setDataSource(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    /**
+     * 设置dao异步执行线程池。要使用异步方法必须设置异步线程池
+     * 
+     * @param executor
+     */
+    @Autowired
+    public void setExecutor(@Qualifier("daoExecutor") Executor executor) {
+        this.executor = executor;
     }
 
     @PostConstruct
