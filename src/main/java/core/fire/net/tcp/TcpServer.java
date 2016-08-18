@@ -60,7 +60,7 @@ public class TcpServer implements Component
         // @formatter:on
         ChannelFuture future = bootstrap.bind(address);
         serverSocket = future.sync().channel();
-        LOG.debug("NettyServer start listen on {}", address);
+        LOG.debug("tcp server start listen on {}", address);
     }
 
     @Override
@@ -75,6 +75,6 @@ public class TcpServer implements Component
             childgroup.shutdownGracefully();
         }
         dispatcher.stop();
-        LOG.debug("NettyServer stop");
+        LOG.debug("tcp server stop");
     }
 }

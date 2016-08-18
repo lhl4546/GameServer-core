@@ -14,10 +14,13 @@ import java.lang.annotation.Target;
  * 
  * @author lhl
  *
- *         2016年2月24日 上午10:09:50
+ * 2016年2月24日 上午10:09:50
  */
 @Target(TYPE)
 @Retention(RUNTIME)
 public @interface Table {
-    String value(); // 表名
+    /**
+     * @return 表名
+     */
+    String value();
 }

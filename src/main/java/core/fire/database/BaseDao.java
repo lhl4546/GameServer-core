@@ -296,7 +296,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         Object[] param = getInsertParam(t);
         jdbcTemplate.update(sql, param);
         long end = System.currentTimeMillis();
-        getLogger().debug("Table {}.add, time = {} ms", tableName, end - start);
+        getLogger().debug("table {}.add, time = {} ms", tableName, end - start);
     }
 
     @Override
@@ -305,7 +305,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         String sql = sql_delete;
         jdbcTemplate.update(sql, new Object[] { primaryKey });
         long end = System.currentTimeMillis();
-        getLogger().debug("Table {}.delete, time = {} ms", tableName, end - start);
+        getLogger().debug("table {}.delete, time = {} ms", tableName, end - start);
     }
 
     @Override
@@ -315,7 +315,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
         Object[] param = getUpdateParam(t);
         jdbcTemplate.update(sql, param);
         long end = System.currentTimeMillis();
-        getLogger().debug("Table {}.update, time = {} ms", tableName, end - start);
+        getLogger().debug("table {}.update, time = {} ms", tableName, end - start);
     }
 
     @Override
@@ -326,7 +326,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
             return jdbcTemplate.query(sql, new Object[] { primaryKey }, beanExtrator);
         } finally {
             long end = System.currentTimeMillis();
-            getLogger().debug("Table {}.get, time = {} ms", tableName, end - start);
+            getLogger().debug("table {}.get, time = {} ms", tableName, end - start);
         }
     }
 
@@ -338,7 +338,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
             return jdbcTemplate.query(sql, new Object[] { secondaryKey }, beanListExtractor);
         } finally {
             long end = System.currentTimeMillis();
-            getLogger().debug("Table {}.getBySecondaryKey, time = {} ms", tableName, end - start);
+            getLogger().debug("table {}.getBySecondaryKey, time = {} ms", tableName, end - start);
         }
     }
 

@@ -29,7 +29,7 @@ import io.netty.handler.codec.http.HttpVersion;
  * 
  * @author lhl
  *
- *         2016年3月28日 下午4:38:37
+ * 2016年3月28日 下午4:38:37
  */
 public class HttpDispatcher implements Component, HttpHandler
 {
@@ -38,7 +38,7 @@ public class HttpDispatcher implements Component, HttpHandler
     private Map<String, HttpHandler> handlerMap = new HashMap<>();
     // 请求处理线程池
     private ExecutorService executor;
-    // 
+    //
     private CoreServer core;
 
     public HttpDispatcher(CoreServer core) {
@@ -51,13 +51,11 @@ public class HttpDispatcher implements Component, HttpHandler
         String uri = channel.attr(KEY_PATH).get();
         HttpHandler handler = handlerMap.get(uri);
         if (handler == null) {
-            LOG.warn("No handler found for uri {}, session will be close", uri);
+            LOG.warn("no handler found for uri {}, session will be close", uri);
             // 此处如果返回404会导致基于UrlConnection的HttpUtil抛出FileNotFound异常，但是基于Apache的HttpClient则不会
             sendError(channel, "Not found", HttpResponseStatus.BAD_REQUEST);
             return;
         }
-
-        LOG.debug("Request ip: {}, uri: {}, parameter: {}", channel.remoteAddress(), uri, parameter);
 
         if (executor != null) {
             Runnable task = () -> handler.handle(channel, parameter);
@@ -101,7 +99,7 @@ public class HttpDispatcher implements Component, HttpHandler
         String[] packages = Util.split(searchPackage.trim(), ",");
         for (String onePackage : packages) {
             if (!Util.isNullOrEmpty(onePackage)) {
-                LOG.debug("Load http handler from package {}", onePackage);
+                LOG.debug("load http handler from package {}", onePackage);
                 List<Class<?>> classList = ClassUtil.getClasses(onePackage);
                 for (Class<?> handler : classList) {
                     HttpRequestHandler annotation = handler.getAnnotation(HttpRequestHandler.class);

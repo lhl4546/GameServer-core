@@ -78,7 +78,7 @@ public final class TcpDispatcher implements Component
     protected void doDispatch(Channel channel, IPacket packet) {
         Handler handler = handlerMap.get(packet.getCode());
         if (handler == null) {
-            LOG.warn("No handler found for code {}, session will be closed", packet.getCode());
+            LOG.warn("no handler found for code {}, session will be closed", packet.getCode());
             channel.close();
             return;
         }
@@ -118,7 +118,7 @@ public final class TcpDispatcher implements Component
      * @throws Exception
      */
     private void loadHandler(String searchPackage) throws Exception {
-        LOG.debug("Load handler from packages {}", searchPackage);
+        LOG.debug("load handler from packages {}", searchPackage);
 
         doLoad(searchPackage, clas -> {
             try {
@@ -177,7 +177,7 @@ public final class TcpDispatcher implements Component
      * @throws Exception
      */
     private void loadInterceptor(String scanPackages) throws Exception {
-        LOG.debug("Load interceptor from packages {}", scanPackages);
+        LOG.debug("load interceptor from packages {}", scanPackages);
 
         Class<HandlerInterceptor> interceptorClass = HandlerInterceptor.class;
         List<HandlerInterceptor> interceptorList = new ArrayList<>();
@@ -195,7 +195,7 @@ public final class TcpDispatcher implements Component
         // 默认注册参数类型拦截器
         interceptorList.add(new ParameterTypeInterceptor(this));
         interceptorList.sort(null);
-        LOG.debug("After sort, handler interceptor list is {}", interceptorList);
+        LOG.debug("after sort, handler interceptor list is {}", interceptorList);
         this.interceptors = interceptorList.toArray(new HandlerInterceptor[interceptorList.size()]);
         LOG.debug("{} interceptors has been loaded", interceptors.length);
     }

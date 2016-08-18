@@ -50,7 +50,7 @@ public class HttpServer implements Component
         bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
         bootstrap.group(bossgroup, childgroup).channel(NioServerSocketChannel.class).childHandler(initializer).childOption(ChannelOption.SO_LINGER, 0).childOption(ChannelOption.TCP_NODELAY, true);
         serverSocket = bootstrap.bind(address).sync().channel();
-        LOG.debug("Http server start listen on {}", address);
+        LOG.debug("http server start listen on {}", address);
     }
 
     @Override
@@ -65,6 +65,6 @@ public class HttpServer implements Component
             childgroup.shutdownGracefully();
         }
         dispatcher.stop();
-        LOG.debug("Http server stop");
+        LOG.debug("http server stop");
     }
 }
