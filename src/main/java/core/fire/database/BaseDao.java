@@ -11,12 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
-import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -33,9 +30,8 @@ import core.fire.Callback;
  * 若该类中的方法无法满足使用，则可以使用{@linkplain #execute(JdbcTemplateCallback)}实现任意
  * {@code JdbcTemplate}支持的行为
  * <p>
- * 使用该类必须提供{@code DataSource}，可选依赖{@code Executor}(只在需要使用异步方法时才需要提供该依赖)，其中{@code Executor}这个bean需要限定名为<tt>daoExecutor</tt>
+ * 必须调用{@linkplain #setDataSource(DataSource)}}才能正常使用这个类，若要支持异步访问数据库还需要调用{@linkplain #setExecutor(Executor)}设置异步执行器
  * <p>
- * BaseDao支持基于Spring实现的IOC完成依赖注入或者直接手动实例化
  * 
  * @author lhl
  *
@@ -70,6 +66,7 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
 
     protected BaseDao(Class<T> type) {
         this.type = Objects.requireNonNull(type);
+        initialize();
     }
 
     /**
@@ -77,7 +74,6 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
      * 
      * @param dataSource
      */
-    @Autowired
     public void setDataSource(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
@@ -87,12 +83,13 @@ public abstract class BaseDao<T> implements AsyncDataAccess<T>
      * 
      * @param executor
      */
-    @Autowired
-    public void setExecutor(@Qualifier("daoExecutor") Executor executor) {
+    public void setExecutor(Executor executor) {
         this.executor = executor;
     }
 
-    @PostConstruct
+    /**
+     * 初始化数据表参数，生成执行SQL
+     */
     public void initialize() {
         initializeTableName();
         initializeColumns();
