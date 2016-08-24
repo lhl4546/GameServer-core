@@ -41,7 +41,7 @@ import io.netty.util.AttributeKey;
  * 
  * @author lhl
  *
- *         2016年1月30日 下午3:49:52
+ * 2016年1月30日 下午3:49:52
  */
 public final class TcpDispatcher implements Component
 {
@@ -57,11 +57,21 @@ public final class TcpDispatcher implements Component
     public static final AttributeKey<Sequence> SEQUENCE_KEY = AttributeKey.valueOf("SEQUENCE_KEY");
     // 请求拦截器
     private HandlerInterceptor[] interceptors;
-    //
-    private CoreServer core;
+    // tcp处理器扫描包
+    private String handlerScanPackage;
+    // tcp拦截器扫描包
+    private String interceptorScanPackage;
 
+    /**
+     * 创建TCP请求分发器
+     * <p>
+     * 要求：CoreServer必须实现<tt>getTcpHandlerScanPath</tt>
+     * 
+     * @param core
+     */
     public TcpDispatcher(CoreServer core) {
-        this.core = core;
+        this.handlerScanPackage = core.getTcpHandlerScanPath();
+        this.interceptorScanPackage = core.getTcpInterceptorScanPath();
         this.executor = core.getTcpExecutor();
     }
 
@@ -106,8 +116,8 @@ public final class TcpDispatcher implements Component
 
     @Override
     public void start() throws Exception {
-        loadHandler(core.getTcpHandlerScanPath());
-        loadInterceptor(core.getTcpInterceptorScanPath());
+        loadHandler(handlerScanPackage);
+        loadInterceptor(interceptorScanPackage);
         LOG.debug("TcpDispatcher start");
     }
 

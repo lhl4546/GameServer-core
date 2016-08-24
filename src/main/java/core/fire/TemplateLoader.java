@@ -21,8 +21,8 @@ public enum TemplateLoader implements Template, Component {
     INSTANCE;
 
     private Map<Class<? extends Template>, Template> templates = new HashMap<>();
-    //
-    private CoreServer coreServer;
+    // 模板类扫描包
+    private String templateScanPackage;
 
     /**
      * 设置数值扫描包，多个包以英文逗号分隔
@@ -30,7 +30,7 @@ public enum TemplateLoader implements Template, Component {
      * @param scanPackages
      */
     public void setCoreServer(CoreServer coreServer) {
-        this.coreServer = coreServer;
+        this.templateScanPackage = coreServer.getTemplateScanPath();
     }
 
     @Override
@@ -50,7 +50,7 @@ public enum TemplateLoader implements Template, Component {
      * 加载所有符合条件的Template子类
      */
     private void loadTemplateClass() {
-        String scanPackages = coreServer.getTemplateScanPath();
+        String scanPackages = templateScanPackage;
         if (Util.isNullOrEmpty(scanPackages)) {
             throw new IllegalStateException("ScanPackages must be specified before load templates");
         }

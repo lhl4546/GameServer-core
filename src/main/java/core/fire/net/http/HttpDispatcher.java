@@ -38,11 +38,11 @@ public class HttpDispatcher implements Component, HttpHandler
     private Map<String, HttpHandler> handlerMap = new HashMap<>();
     // 请求处理线程池
     private ExecutorService executor;
-    //
-    private CoreServer core;
+    // 处理器扫描包
+    private String handlerScanPackage;
 
     public HttpDispatcher(CoreServer core) {
-        this.core = core;
+        this.handlerScanPackage = core.getHttpHandlerScanPath();
         this.executor = core.getHttpExecutor();
     }
 
@@ -81,7 +81,7 @@ public class HttpDispatcher implements Component, HttpHandler
 
     @Override
     public void start() throws Exception {
-        loadHandler(core.getHttpHandlerScanPath());
+        loadHandler(handlerScanPackage);
         LOG.debug("HttpDispatcher start");
     }
 
