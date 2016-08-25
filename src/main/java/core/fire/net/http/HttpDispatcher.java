@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
-import core.fire.CoreServer;
 import core.fire.util.ClassUtil;
 import core.fire.util.Util;
 import io.netty.buffer.Unpooled;
@@ -41,9 +40,26 @@ public class HttpDispatcher implements Component, HttpHandler
     // 处理器扫描包
     private String handlerScanPackage;
 
-    public HttpDispatcher(CoreServer core) {
-        this.handlerScanPackage = core.getHttpHandlerScanPath();
-        this.executor = core.getHttpExecutor();
+    public HttpDispatcher() {
+    }
+
+    /**
+     * 设置http处理器扫描包
+     * 
+     * @param handlerScanPath 多个包名支持英文逗号分隔，如:
+     * com.foo,com.bar，表示将从com.foo和com.bar这2个包下面搜索http处理器
+     */
+    public void setHandlerScanPath(String handlerScanPath) {
+        this.handlerScanPackage = handlerScanPath;
+    }
+
+    /**
+     * 设置http请求处理器，不设置的话请求将在io线程中处理
+     * 
+     * @param executor
+     */
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
     }
 
     @Override

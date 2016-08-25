@@ -11,15 +11,21 @@ import io.netty.handler.timeout.IdleStateHandler;
 /**
  * @author lhl
  *
- *         2016年1月30日 上午9:29:24
+ * 2016年1月30日 上午9:29:24
  */
 public class ServerChannelInitializer extends ChannelInitializer<Channel>
 {
     private ServerHandler netHandler;
     private CodecFactory codecFactory;
 
-    public ServerChannelInitializer(TcpDispatcher dispatcher, CodecFactory codecFactory) {
-        this.netHandler = new ServerHandler(dispatcher);
+    public ServerChannelInitializer() {
+    }
+
+    public void setServerHandler(ServerHandler serverHandler) {
+        this.netHandler = serverHandler;
+    }
+
+    public void setCodecFactory(CodecFactory codecFactory) {
         this.codecFactory = codecFactory;
     }
 

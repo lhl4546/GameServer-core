@@ -4,12 +4,12 @@
 package core.fire.net.tcp;
 
 import java.net.SocketAddress;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
-import core.fire.CoreServer;
 import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -24,7 +24,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  * 
  * @author lhl
  *
- *         2016年1月29日 下午6:16:21
+ * 2016年1月29日 下午6:16:21
  */
 public class TcpServer implements Component
 {
@@ -37,14 +37,33 @@ public class TcpServer implements Component
     private TcpDispatcher dispatcher;
     private SocketAddress address;
 
-    public TcpServer(CoreServer core) {
-        this.dispatcher = new TcpDispatcher(core);
-        this.channelInitializer = new ServerChannelInitializer(dispatcher, core.getCodecFactory());
-        this.address = core.getTcpAddress();
+    public TcpServer() {
         this.bootstrap = new ServerBootstrap();
-        this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("acceptor"));
-        int netiothreads = Runtime.getRuntime().availableProcessors();
-        this.childgroup = new NioEventLoopGroup(netiothreads, new NamedThreadFactory("socket"));
+        this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("tcp-acceptor"));
+        this.childgroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), new NamedThreadFactory("tcp-io"));
+    }
+
+    /**
+     * 设置tcp服务器地址
+     * 
+     * @param address
+     */
+    public void setAddress(SocketAddress address) {
+        this.address = Objects.requireNonNull(address);
+    }
+
+    /**
+     * 设置tcp请求分发器和协议编解码器
+     * 
+     * @param dispatcher
+     * @param codecFactory
+     */
+    public void setDispatcherAndCodec(TcpDispatcher dispatcher, CodecFactory codecFactory) {
+        this.dispatcher = dispatcher;
+        ServerChannelInitializer initializer = new ServerChannelInitializer();
+        initializer.setServerHandler(new ServerHandler(dispatcher));
+        initializer.setCodecFactory(codecFactory);
+        this.channelInitializer = initializer;
     }
 
     @Override
@@ -64,7 +83,7 @@ public class TcpServer implements Component
     }
 
     @Override
-    public void stop() {
+    public void stop() throws Exception {
         if (serverSocket != null) {
             serverSocket.close();
         }

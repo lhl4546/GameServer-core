@@ -15,7 +15,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
  * 
  * @author lhl
  *
- *         2016年1月29日 下午5:36:23
+ * 2016年1月29日 下午5:36:23
  */
 @Sharable
 public class ServerHandler extends SimpleChannelInboundHandler<IPacket>
@@ -39,8 +39,10 @@ public class ServerHandler extends SimpleChannelInboundHandler<IPacket>
         dispatcher.handle(ctx.channel(), msg);
     }
 
+    /**
+     * 心跳由客户端主动发起，连续3次
+     */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-
     }
 }

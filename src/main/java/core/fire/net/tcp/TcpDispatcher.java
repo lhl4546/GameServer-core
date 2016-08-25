@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -16,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.google.protobuf.GeneratedMessage;
 
 import core.fire.Component;
-import core.fire.CoreServer;
 import core.fire.Dumpable;
 import core.fire.collection.IntHashMap;
 import core.fire.executor.Sequence;
@@ -62,17 +62,36 @@ public final class TcpDispatcher implements Component
     // tcp拦截器扫描包
     private String interceptorScanPackage;
 
+    public TcpDispatcher() {
+    }
+
     /**
-     * 创建TCP请求分发器
-     * <p>
-     * 要求：CoreServer必须实现<tt>getTcpHandlerScanPath</tt>
+     * 设置tcp处理器扫描路径
      * 
-     * @param core
+     * @param handlerScanPath 多个包名支持英文逗号分隔，如:
+     * com.foo,com.bar，表示将从com.foo和com.bar这2个包下面搜索http处理器
      */
-    public TcpDispatcher(CoreServer core) {
-        this.handlerScanPackage = core.getTcpHandlerScanPath();
-        this.interceptorScanPackage = core.getTcpInterceptorScanPath();
-        this.executor = core.getTcpExecutor();
+    public void setHandlerScanPath(String handlerScanPath) {
+        this.handlerScanPackage = handlerScanPath;
+    }
+
+    /**
+     * 设置tcp拦截器扫描路径
+     * 
+     * @param interceptorScanPath 多个包名支持英文逗号分隔，如:
+     * com.foo,com.bar，表示将从com.foo和com.bar这2个包下面搜索http处理器
+     */
+    public void setInterceptorScanPath(String interceptorScanPath) {
+        this.interceptorScanPackage = interceptorScanPath;
+    }
+
+    /**
+     * 设置tcp请求处理器
+     * 
+     * @param executor
+     */
+    public void setExecutor(ExecutorService executor) {
+        this.executor = Objects.requireNonNull(executor);
     }
 
     public void handle(Channel channel, IPacket packet) {

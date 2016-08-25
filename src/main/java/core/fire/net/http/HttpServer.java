@@ -1,12 +1,12 @@
 package core.fire.net.http;
 
 import java.net.SocketAddress;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
-import core.fire.CoreServer;
 import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -20,7 +20,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  * 
  * @author lhl
  *
- *         2016年3月28日 下午3:48:06
+ * 2016年3月28日 下午3:48:06
  */
 public class HttpServer implements Component
 {
@@ -33,15 +33,30 @@ public class HttpServer implements Component
     private HttpDispatcher dispatcher;
     private SocketAddress address;
 
-    public HttpServer(CoreServer core) {
-        this.dispatcher = new HttpDispatcher(core);
-        HttpServerInitializer initializer = new HttpServerInitializer(dispatcher);
-        this.initializer = initializer;
-        this.address = core.getHttpAddress();
+    public HttpServer() {
         this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("http-acceptor"));
-        int netioThreads = Runtime.getRuntime().availableProcessors();
-        this.childgroup = new NioEventLoopGroup(netioThreads, new NamedThreadFactory("http"));
+        this.childgroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), new NamedThreadFactory("http-io"));
         this.bootstrap = new ServerBootstrap();
+    }
+
+    /**
+     * 设置http服务地址
+     * 
+     * @param address
+     */
+    public void setAddress(SocketAddress address) {
+        this.address = Objects.requireNonNull(address);
+    }
+
+    /**
+     * 设置http请求分发器
+     * 
+     * @param dispatcher
+     */
+    public void setDispatcher(HttpDispatcher dispatcher) {
+        this.dispatcher = Objects.requireNonNull(dispatcher);
+        HttpServerInitializer initializer = new HttpServerInitializer(this.dispatcher);
+        this.initializer = initializer;
     }
 
     @Override
