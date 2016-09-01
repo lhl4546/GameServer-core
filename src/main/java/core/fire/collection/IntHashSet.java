@@ -3,16 +3,14 @@
  */
 package core.fire.collection;
 
-import java.util.Iterator;
-
 /**
  * IntHashSet which elements are primitive int
  * 
  * @author lhl
  *
- *         2016年5月24日 下午3:47:48
+ * 2016年5月24日 下午3:47:48
  */
-public class IntHashSet implements Iterable<Integer>
+public class IntHashSet
 {
     private transient IntHashMap<Boolean> map;
     private static final Boolean PRESENT = Boolean.TRUE;
@@ -76,8 +74,11 @@ public class IntHashSet implements Iterable<Integer>
         map.clear();
     }
 
-    @Override
-    public Iterator<Integer> iterator() {
-        return map.keySet().iterator();
+    /**
+     * 
+     * @return
+     */
+    public int[] keys() {
+        return map.keys();
     }
 }
