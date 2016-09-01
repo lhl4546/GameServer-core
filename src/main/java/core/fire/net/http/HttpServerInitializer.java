@@ -18,10 +18,13 @@ package core.fire.net.http;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel>
 {
+    // 最大body为1MB，超出此长度将抛出异常
+    private static final int MAX_BODY_LENGTH = 1048576;
     private HttpDispatcher dispatcher;
 
     public HttpServerInitializer(HttpDispatcher dispatcher) {
@@ -32,6 +35,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel>
     public void initChannel(SocketChannel ch) {
         ChannelPipeline p = ch.pipeline();
         p.addLast("codec", new HttpServerCodec());
+        p.addLast("aggregator", new HttpObjectAggregator(MAX_BODY_LENGTH));
         p.addLast("iohandler", new HttpInboundHandler(dispatcher));
     }
 }

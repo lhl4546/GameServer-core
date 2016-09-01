@@ -11,7 +11,6 @@ import java.util.Map;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -22,7 +21,7 @@ import io.netty.handler.codec.http.HttpVersion;
  * 
  * @author lhl
  *
- *         2016年3月28日 下午3:51:19
+ * 2016年3月28日 下午3:51:19
  */
 public interface HttpHandler
 {
@@ -44,6 +43,6 @@ public interface HttpHandler
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(data.getBytes()));
         response.headers().set(CONTENT_TYPE, "text/plain");
         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
-        channel.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        channel.writeAndFlush(response);
     }
 }

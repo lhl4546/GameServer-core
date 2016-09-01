@@ -55,7 +55,7 @@ import io.netty.util.AttributeKey;
  * 
  * @author lhl
  *
- *         2016年3月28日 下午3:49:19
+ * 2016年3月28日 下午3:49:19
  */
 public class HttpInboundHandler extends ChannelInboundHandlerAdapter
 {

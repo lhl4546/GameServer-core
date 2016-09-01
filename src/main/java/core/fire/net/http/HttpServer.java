@@ -7,16 +7,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import core.fire.Component;
-import core.fire.NamedThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 /**
- * 一个基于Netty实现的简易Http服务器，支持GET/POST。
+ * 一个基于Netty实现的简易Http服务器，支持GET/POST。POST的body最大长度不要超过1MB
  * 
  * @author lhl
  *
@@ -34,8 +34,8 @@ public class HttpServer implements Component
     private SocketAddress address;
 
     public HttpServer() {
-        this.bossgroup = new NioEventLoopGroup(1, new NamedThreadFactory("http-acceptor"));
-        this.childgroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), new NamedThreadFactory("http-io"));
+        this.bossgroup = new NioEventLoopGroup(1, new DefaultThreadFactory("http-acceptor"));
+        this.childgroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), new DefaultThreadFactory("http-io"));
         this.bootstrap = new ServerBootstrap();
     }
 

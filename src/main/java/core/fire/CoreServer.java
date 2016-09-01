@@ -83,85 +83,31 @@ public class CoreServer implements Component
     }
 
     /**
-     * @return TCP业务执行线程池
-     */
-    protected ExecutorService getTcpExecutor() {
-        throw new AbstractMethodError();
-    }
-
-    /**
-     * @return TCP协议编解码
-     */
-    protected CodecFactory getCodecFactory() {
-        throw new AbstractMethodError();
-    }
-
-    /**
-     * @return TCP协议处理器扫描路径，支持以英文逗号分隔的多个路径(如 "a.b,c.d")
-     */
-    protected String getTcpHandlerScanPath() {
-        throw new AbstractMethodError();
-    }
-
-    /**
-     * @return TCP拦截器扫描路径，支持以英文逗号分隔的多个路径(如 "a.b,c.d")
-     */
-    protected String getTcpInterceptorScanPath() {
-        throw new AbstractMethodError();
-    }
-
-    /**
-     * @return TCP监听地址
-     */
-    protected SocketAddress getTcpAddress() {
-        throw new AbstractMethodError();
-    }
-
-    /**
      * 创建一个tcp服务器，必须重写getTcpExecutor、getTcpHandlerScanPath、getTcpInterceptorScanPath、getCodecFactory、getTcpAddress方法
+     * 
+     * @param configuration tcp服务器配置
      */
-    protected void createTcpServer() {
+    protected void createTcpServer(TcpServerConfiguration configuration) {
         TcpDispatcher dispatcher = new TcpDispatcher();
-        dispatcher.setExecutor(getTcpExecutor());
-        dispatcher.setHandlerScanPath(getTcpHandlerScanPath());
-        dispatcher.setInterceptorScanPath(getTcpInterceptorScanPath());
-        CodecFactory codecFactory = getCodecFactory();
+        dispatcher.setExecutor(configuration.getTcpExecutor());
+        dispatcher.setHandlerScanPath(configuration.getTcpHandlerScanPath());
+        dispatcher.setInterceptorScanPath(configuration.getTcpInterceptorScanPath());
+        CodecFactory codecFactory = configuration.getCodecFactory();
         TcpServer server = new TcpServer();
-        server.setAddress(getTcpAddress());
+        server.setAddress(configuration.getTcpAddress());
         server.setDispatcherAndCodec(dispatcher, codecFactory);
         this.tcpServer = server;
     }
 
     /**
-     * @return HTTP监听地址
-     */
-    protected SocketAddress getHttpAddress() {
-        throw new AbstractMethodError();
-    }
-
-    /**
-     * @return HTTP协议处理器扫描路径，支持以英文逗号分隔的多个路径(如 "a.b,c.d")
-     */
-    protected String getHttpHandlerScanPath() {
-        throw new AbstractMethodError();
-    }
-
-    /**
-     * @return HTTP业务执行线程池，返回null表示在HTTP IO线程中执行业务逻辑
-     */
-    protected ExecutorService getHttpExecutor() {
-        return null;
-    }
-
-    /**
      * 创建一个http服务器，必须重写getHttpExecutor、getHttpHandlerScanPath、getHttpAddress方法
      */
-    protected void createHttpServer() {
+    protected void createHttpServer(HttpServerConfiguration configuration) {
         HttpDispatcher dispatcher = new HttpDispatcher();
-        dispatcher.setExecutor(getHttpExecutor());
-        dispatcher.setHandlerScanPath(getHttpHandlerScanPath());
+        dispatcher.setExecutor(configuration.getHttpExecutor());
+        dispatcher.setHandlerScanPath(configuration.getHttpHandlerScanPath());
         HttpServer server = new HttpServer();
-        server.setAddress(getHttpAddress());
+        server.setAddress(configuration.getHttpAddress());
         server.setDispatcher(dispatcher);
         this.httpServer = server;
     }
@@ -230,5 +176,67 @@ public class CoreServer implements Component
      * 停止后回调
      */
     protected void afterStop() {
+    }
+
+    /**
+     * tcp服务器配置
+     * 
+     * @author lhl
+     *
+     * 2016年9月1日 下午4:42:26
+     */
+    public interface TcpServerConfiguration
+    {
+        /**
+         * @return TCP业务执行线程池
+         */
+        ExecutorService getTcpExecutor();
+
+        /**
+         * @return TCP协议编解码
+         */
+        CodecFactory getCodecFactory();
+
+        /**
+         * @return TCP协议处理器扫描路径，支持以英文逗号分隔的多个路径(如 "a.b,c.d")
+         */
+        String getTcpHandlerScanPath();
+
+        /**
+         * @return TCP拦截器扫描路径，支持以英文逗号分隔的多个路径(如 "a.b,c.d")
+         */
+        String getTcpInterceptorScanPath();
+
+        /**
+         * @return TCP监听地址
+         */
+        SocketAddress getTcpAddress();
+    }
+
+    /**
+     * http服务器配置
+     * 
+     * @author lhl
+     *
+     * 2016年9月1日 下午4:43:07
+     */
+    public interface HttpServerConfiguration
+    {
+        /**
+         * @return HTTP监听地址
+         */
+        SocketAddress getHttpAddress();
+
+        /**
+         * @return HTTP协议处理器扫描路径，支持以英文逗号分隔的多个路径(如 "a.b,c.d")
+         */
+        String getHttpHandlerScanPath();
+
+        /**
+         * @return HTTP业务执行线程池，返回null表示在HTTP IO线程中执行业务逻辑，默认返回null
+         */
+        default ExecutorService getHttpExecutor() {
+            return null;
+        }
     }
 }
