@@ -168,6 +168,11 @@ public class AStarPathFind
         }
 
         @Override
+        public int hashCode() {
+            return x + y + parent.hashCode() + F + G + H;
+        }
+
+        @Override
         public String toString() {
             return "(" + this.x + "," + this.y + ")";
         }
