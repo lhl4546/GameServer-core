@@ -1,28 +1,22 @@
 /**
- * 
+ *
  */
 package core.fire.net.tcp;
+
+import core.fire.NamedThreadFactory;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 
-import core.fire.NamedThreadFactory;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInboundHandler;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
-
 /**
- * TCP客户端
- * 
- * @author lhl
+ * TCP客户端。异步事件驱动，用户需要自定义协议编解码和注册事件处理器
  *
+ * @author lhl
+ *         <p>
  *         2015年8月13日上午11:56:48
  */
 public class SocketClient
@@ -37,7 +31,7 @@ public class SocketClient
 
     /**
      * 连接远程主机
-     * 
+     *
      * @throws RuntimeException 如果无法建立与远程主机的连接
      */
     public void connect() {
@@ -51,7 +45,7 @@ public class SocketClient
 
     /**
      * 当前是否已经建立连接
-     * 
+     *
      * @return true：已经建立连接
      */
     public boolean isConnected() {
@@ -60,7 +54,7 @@ public class SocketClient
 
     /**
      * 发送网络数据，每次发送之前都会判断网络连接是否正常
-     * 
+     *
      * @param obj
      * @return
      */
@@ -69,6 +63,9 @@ public class SocketClient
         return channel.writeAndFlush(obj);
     }
 
+    /**
+     * 验证当前连接是否有效，若连接已失效则重新建立连接
+     */
     private void validateBeforeWrite() {
         if (!isConnected()) {
             connect();
@@ -77,7 +74,7 @@ public class SocketClient
 
     /**
      * 返回远程主机地址
-     * 
+     *
      * @return
      */
     public String remoteAddress() {
@@ -103,6 +100,9 @@ public class SocketClient
         }
     }
 
+    /**
+     * SocketClient构建器
+     */
     public static class SocketClientBuilder
     {
         SocketAddress address;
@@ -116,21 +116,44 @@ public class SocketClient
             return new SocketClientBuilder();
         }
 
+        /**
+         * 设置要连接的远程主机地址
+         *
+         * @param address
+         * @return
+         */
         public SocketClientBuilder setHost(SocketAddress address) {
             this.address = address;
             return this;
         }
 
+        /**
+         * 设置协议编解码工厂
+         *
+         * @param codecFactory
+         * @return
+         */
         public SocketClientBuilder setCodecFactory(CodecFactory codecFactory) {
             this.codecFactory = codecFactory;
             return this;
         }
 
+        /**
+         * 设置IO事件处理器
+         *
+         * @param handler
+         * @return
+         */
         public SocketClientBuilder setHandler(ChannelInboundHandler handler) {
             this.handler = handler;
             return this;
         }
 
+        /**
+         * 构建SocketClient
+         *
+         * @return
+         */
         public SocketClient build() {
             ChannelInitializer<Channel> initializer = buildInitializer();
             NioEventLoopGroup multiplexer = new NioEventLoopGroup(1, new NamedThreadFactory("client"));
@@ -144,7 +167,8 @@ public class SocketClient
         }
 
         private ChannelInitializer<Channel> buildInitializer() {
-            return new ChannelInitializer<Channel>() {
+            return new ChannelInitializer<Channel>()
+            {
                 @Override
                 protected void initChannel(Channel ch) throws Exception {
                     ChannelPipeline pipe = ch.pipeline();
