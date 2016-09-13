@@ -1,11 +1,10 @@
 package core.fire.user;
 
-import io.netty.channel.Channel;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.util.concurrent.GlobalEventExecutor;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import io.netty.channel.Channel;
+import io.netty.channel.group.ChannelGroup;
 
 /**
  * Created by lihuoliang on 2016/9/11.
@@ -19,7 +18,7 @@ public enum GroupManager {
     private ConcurrentMap<String, UserGroup> groups;
 
     GroupManager() {
-        globalGroup = new UserGroup("global-user-group", GlobalEventExecutor.INSTANCE);
+        globalGroup = new UserGroup("global-user-group");
         groups = new ConcurrentHashMap<>();
     }
 

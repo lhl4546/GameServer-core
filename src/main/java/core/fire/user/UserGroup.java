@@ -3,23 +3,23 @@
  */
 package core.fire.user;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import io.netty.channel.Channel;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.ChannelGroupFuture;
 import io.netty.channel.group.ChannelMatcher;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.GlobalEventExecutor;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * 用户组
  *
  * @author lihuoliang
  */
-public class UserGroup implements ChannelGroup {
+public class UserGroup implements ChannelGroup
+{
 
     private ChannelGroup group;
 
@@ -100,6 +100,7 @@ public class UserGroup implements ChannelGroup {
         return group.deregister();
     }
 
+    @Deprecated
     @Override
     public ChannelGroupFuture deregister(ChannelMatcher matcher) {
         return group.deregister(matcher);
