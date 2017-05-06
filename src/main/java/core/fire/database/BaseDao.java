@@ -19,7 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
-import core.fire.Callback;
+import core.fire.async.Callback;
 
 /**
  * 基于Spring {@linkplain org.springframework.jdbc.core.JdbcTemplate} 和

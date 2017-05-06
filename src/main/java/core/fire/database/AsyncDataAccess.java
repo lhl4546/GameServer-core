@@ -5,7 +5,7 @@ package core.fire.database;
 
 import java.util.List;
 
-import core.fire.Callback;
+import core.fire.async.Callback;
 
 /**
  * 异步数据访问接口

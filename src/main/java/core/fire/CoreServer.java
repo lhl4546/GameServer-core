@@ -4,6 +4,7 @@ import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import core.fire.async.Callback;
 import core.fire.eventbus.EventBus;
 import core.fire.net.http.HttpDispatcher;
 import core.fire.net.http.HttpServer;

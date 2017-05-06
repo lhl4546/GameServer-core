@@ -3,7 +3,7 @@
  */
 package core.fire.net.tcp;
 
-import core.fire.NamedThreadFactory;
+import core.fire.executor.NamedThreadFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
