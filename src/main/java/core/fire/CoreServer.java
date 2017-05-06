@@ -1,11 +1,14 @@
 package core.fire;
 
 import java.net.SocketAddress;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import core.fire.async.Callback;
 import core.fire.eventbus.EventBus;
+import core.fire.executor.NamedThreadFactory;
 import core.fire.net.http.HttpDispatcher;
 import core.fire.net.http.HttpServer;
 import core.fire.net.tcp.CodecFactory;
@@ -25,6 +28,8 @@ public class CoreServer implements Component
     private HttpServer httpServer;
     // tcp服务器
     private TcpServer tcpServer;
+    // 异步任务线程池
+    private ExecutorService asyncTaskExecutor = Executors.newFixedThreadPool(4, new NamedThreadFactory("async-executor"));
 
     /**
      * 注册事件处理器
@@ -45,29 +50,18 @@ public class CoreServer implements Component
     }
 
     /**
-     * @return 异步任务线程池
-     */
-    public ExecutorService getAsyncExecutor() {
-        throw new AbstractMethodError();
-    }
-
-    /**
      * 执行异步任务
-     * <p>
-     * 要使用该功能必须先重写{@linkplain #getAsyncExecutor()}方法
-     * 
+     *
      * @param task
      * @return {@linkplain Future}
      */
     public Future<?> async(Runnable task) {
-        return getAsyncExecutor().submit(task);
+        return asyncTaskExecutor.submit(task);
     }
 
     /**
      * 执行异步任务，并绑定一个回调
-     * <p>
-     * 要使用该功能必须先重写{@linkplain #getAsyncExecutor()}方法
-     * 
+     *
      * @param task
      * @param cb
      */
@@ -80,11 +74,30 @@ public class CoreServer implements Component
                 cb.onError(t);
             }
         };
-        getAsyncExecutor().execute(callbackTask);
+        asyncTaskExecutor.execute(callbackTask);
     }
 
     /**
-     * 创建一个tcp服务器，必须重写getTcpExecutor、getTcpHandlerScanPath、getTcpInterceptorScanPath、getCodecFactory、getTcpAddress方法
+     * 执行异步任务，并绑定一个回调
+     *
+     * @param task
+     * @param cb
+     * @param <V>
+     */
+    public <V> void async(Callable<V> task, Callback<V> cb) {
+        Runnable callbackTask = () -> {
+            try {
+                V retVal = task.call();
+                cb.onSuccess(retVal);
+            } catch (Throwable t) {
+                cb.onError(t);
+            }
+        };
+        asyncTaskExecutor.execute(callbackTask);
+    }
+
+    /**
+     * 创建tcp服务器
      * 
      * @param configuration tcp服务器配置
      */
@@ -101,7 +114,9 @@ public class CoreServer implements Component
     }
 
     /**
-     * 创建一个http服务器，必须重写getHttpExecutor、getHttpHandlerScanPath、getHttpAddress方法
+     * 创建http服务器
+     *
+     * @param configuration http服务器配置
      */
     protected void createHttpServer(HttpServerConfiguration configuration) {
         HttpDispatcher dispatcher = new HttpDispatcher();
