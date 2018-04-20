@@ -5,9 +5,9 @@
 
 ## 提供功能
 ### 集合
-1. 免拆箱、装箱整型IntHashMap
+1. 免拆箱、装箱的整型IntHashMap
 2. 并发ConcurrentHashSet
-3. 免拆箱、装箱整型IntHashSet
+3. 免拆箱、装箱的整型IntHashSet
 
 ### 数据库访问
 数据库访问模块提供了一个简单的基于Java反射的ORM实现，并提供同步、异步数据访问接口，其中异步数据访问接口利用Callback参数实现回调。
